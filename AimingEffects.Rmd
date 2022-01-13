@@ -1,20 +1,46 @@
 ---
 title: "Aiming Evokes Explicit Motor Adaptation"
-output: html_notebook
+output:
+  html_document:
+    df_print: paged
+bibliography: bibliography.bib
+csl: plos.csl
+link-citations: yes
 ---
+ 
 
-In this document we pre-process and analyze data and make figures for a project where we tested our hypothesis that adding an aiming task to adaptation makes adaptation more explicit. The idea was that asking participants to think really hard on where they would move their hand relative to the target, might cue them in on the fact that aiming your hand somewhere other than the target mighth be the way to optimally do the task. In effect, this would act like instructions such as used in other studies [@Werner2015; @Modchalingam2019]. While aiming is still interesting for measuring explicit learning it is also affecting what is learned, so it should be used only when no other option is available and even then with caution.
+In this document we pre-process and analyze data and make figures for a project where we tested our hypothesis that adding an aiming task to adaptation makes adaptation more explicit. The idea was that asking participants to think really hard on where they would move their hand relative to the target, might cue them in on the fact that aiming your hand somewhere other than the target mighth be the way to optimally do the task. In effect, this would act like instructions such as used in other studies [@Werner2015; @Modchalingam2019]. 
 
-The data for this project is available from OSF.
+We install a support package, also used in other projects from our lab:
 
-This RStudio Project uses `renv` in an attempt to make sure the same (versions of) packages are used here as we used when we originally wrote the scripts. This probably took some time when starting this up. It also means that all those packages are installed in the project folder, so after being done with the project, you might want to free up some disk space by removing it.
+```{r}
+if (!require(Reach)) {
+  if (!require(devtools)) {
+    install.packages(devtools)
+  }
+  devtools::install_github('thartbm/Reach', ref='main', force=TRUE)
+}
+library(Reach)
+```
+
+All the raw data for this project is available from OSF. We can use a `Reach` function to download it:
+
+```{r}
+datalist <- c()
+datalist[['\\']] <- c('aiming.zip', 'control.zip', 'instructed.zip', 'demographics.csv')
+Reach::downloadOSFdata(repository='kr5eh',
+                       filelist=datalist,
+                       folder='data',
+                       overwrite=TRUE,
+                       unzip=TRUE,
+                       removezips=TRUE)
+```
+
+This RStudio Project uses `renv` in an attempt to make sure the same (versions of) packages are used here as we used when we originally wrote the scripts (a few years ago, really). This probably took some time when starting this up. It also means that all those packages are installed in the project folder, so after being done with the project, you might want to free up some disk space by removing it.
 
 Then we access all our custom functions:
 
 ```{r}
-# this is for getting the data from OSF:
-source('R/data.R')
-
 # this is for (pre)processing the raw data:
 source('R/process.R')
 
@@ -31,3 +57,31 @@ source('R/figures.R')
 source('R/statistics.R')
 ```
 
+# Process data
+
+This function takes the raw data files from every participant (24 per group), and converts it to a single file with 1 row per trial, and all behavior expressed in terms of angular deviations from the target. It stores one file per group. This may take a while...
+
+```{r}
+processData()
+```
+
+From this we extract the interesting data: training reach deviations, aiming responses and the three kinds of no-cursor reach deviations. This should be much faster:
+
+```{r}
+saveTrainingdata()
+saveNoCursorData()
+```
+
+Apart from the folders with raw data, there should now be a lot of other csv files in the `data` directory. We'll use those for figures as well as statistics.
+
+# Adaptation
+
+Let's have a look at the overall learning (or 'adaptation') and the aiming responses over time:
+
+```{r fig.width=8, fig.height=4}
+plotLearning()
+```
+
+
+
+# References
