@@ -26,7 +26,7 @@ library(Reach)
 All the raw data for this project is available from OSF. We can use a `Reach` function to download it:
 
 ```{r}
-datalist <- c()
+datalist <- list()
 datalist[['\\']] <- c('aiming.zip', 'control.zip', 'instructed.zip', 'demographics.csv')
 Reach::downloadOSFdata(repository='kr5eh',
                        filelist=datalist,
@@ -35,6 +35,8 @@ Reach::downloadOSFdata(repository='kr5eh',
                        unzip=TRUE,
                        removezips=TRUE)
 ```
+
+There should now be 3 subfolders in the 'data' directory (one for each group) as well asa file called 'demographics.csv' with information about the participants.
 
 This RStudio Project uses `renv` in an attempt to make sure the same (versions of) packages are used here as we used when we originally wrote the scripts (a few years ago, really). This probably took some time when starting this up. It also means that all those packages are installed in the project folder, so after being done with the project, you might want to free up some disk space by removing it.
 
@@ -46,9 +48,6 @@ source('R/process.R')
 
 # this function provides access to demographics about the participants:
 source('R/participants.R')
-
-# here we set the colors and other style elements to be used in plots:
-source('R/style.R')
 
 # this has functions to make figures:
 source('R/figures.R')
@@ -65,7 +64,7 @@ This function takes the raw data files from every participant (24 per group), an
 processData()
 ```
 
-From this we extract the interesting data: training reach deviations, aiming responses and the three kinds of no-cursor reach deviations. This should be much faster:
+From this we extract the interesting data: reach deviations and aiming responses during training and the three kinds of no-cursor reach deviations. This should be much faster:
 
 ```{r}
 saveTrainingdata()
@@ -79,9 +78,87 @@ Apart from the folders with raw data, there should now be a lot of other csv fil
 Let's have a look at the overall learning (or 'adaptation') and the aiming responses over time:
 
 ```{r fig.width=8, fig.height=4}
-plotLearning()
+fig3_Learning()
 ```
 
 
+# Additivity
+
+Now the main plot, that shows the data we base our statistics on:
+
+```{r  fig.width=8, fig.height=4}
+fig4_Additivity()
+```
+
+The level of adaptation is estimated for every participant as the reach deviations in the last block of 8 trials at the and of the first set of 96 rotated trials minus the reach deviations in the last block of 8 trials in the first set of 32 aligned trials. We can then look for differences in the level of adaptation between the groups using a one-factor ANOVA:
+
+
+```{r}
+adaptationFtest()
+```
+
+That is, there is no effect of group on adaptation (F(2,69)=0.20, p=0.82, ges=.006), which means that we can't reject the null-hypothesis that adaptation is the same in each of the groups.
+
+As a measure of implicit adaptation we take the reach deviations in the "exclude strategy" no-cursor reaches from our Process Dissociation Procedure minus the reach deviations in the no-cursor trials from aligned part. We then test if implicit adaptation is different between the groups:
+
+```{r}
+implicitFtest()
+```
+
+We see there is no effect of group on implicit no-cursor reach deviations (F(2,69)=0.59, p=.56, ges=.017), so that we can not reject the null-hypothesis that there is no difference between the groups in implicit adaptation.
+
+For now, we estimate explicit adaptation for every participant as the difference between reach deviations in the include and exclude blocks from the Process Dissociation Procedure. Then we can test if explicit adaptation is different between the three groups:
+
+```{r}
+knitr::kable(afex::nice(explicitFtest()))
+```
+
+There is an effect of group on explicit adaptation (F(2,69)=17.56, p<.001, ges=.337), which means that explicit adaptation is different between at least two of the groups. We will do a post-hoc comparison to investigate this:
+
+```{r}
+knitr::kable(explicitPostHoc())
+```
+
+Looks to me like these are not corrected for multiple comparisons, but it also looks to me like this will not matter much. We find the  we can't reject the null hypothesis that explicit adaptation is the same in the aiming and the control group (t-ratio(df=69)=1.53, p=0.28). There are differences between the instructed group and both the aiming (t-ratio(69)=-4.19, p<.001) and the control group (t-ratio(69)=-5.72, p<.001).
+
+**Of course, this difference measure between include and exclude strategy no-cursor reach deviations suffers from the same weakness that we are investigating here: it assumes that explicit and implicit adaptation are literally added by the brain AND that this is measured adequately in the include strategy conditions AND that the exlcude strategy condition gives us a good measure of implicit adaptation. All of these (largely untested) assumptions need to be true for this difference measure to make sense.**
+
+Bromberg (and Donchin): eye-movement measures don't add up either.
+
+# Explicit measure
+
+Apart from the difference between include and exclude strategy no-cursor reaches as a measure of explicit adaptation, we also have re-aiming responses - of course only for the aiming group. Re-aiming responses seem like a valid measure of explicit adaptation, and are certainly used more than the difference between two kinds of Process Dissociation Procedure no-cursor reach deviations. So we can test how well the two match each other. Let's have a look at a scatter plot that shows the difference measure over the re-aiming responses:
+
+```{r fig.width=8, fig.height=4}
+fig5_Explicit()
+```
+
+We test how well aiming responses, as a direct measure of explicit adaptation, predict the include-exclude difference, an indirect measure of explicit adaptation with a linear regression:
+
+```{r}
+explicitRegression()
+```
+
+The intercept (2.2 degrees) does not contribute (t=1.59, p=0.13), but the re-aiming response does (t=4.69, p<.001) with a slope of 0.945.
+
+This means that at least in this task and this sample, there is fairly good agreement between the difference measure and the re-aiming responses. While this will need to be confirmed in different tasks and conditions, for now we interpret this to mean that the difference measure is also a reasonable estimate for explicit adaptation in the control and instructed group.
+
+This is NOT in line with Maresch, Werner and Donchin (EJN, 2020).
+
+In the scatterplot we can see there is quite some variability in both measures, with a cluster of participants showing almost no explicit adaptation according to the re-aiming measure, as well as according to the difference measure. For a visual comparison we show average and median of the difference measure for each group, as well as the individual participants (bar graphs and dots) and a kernel density estimate of the distribution. For the control group and the instructed group this looks like a uni-modal distribution, but for the aiming group this looks bi-modal. In particular, the two peaks of this bi-modal distribution seem to be close to the peaks in the two other groups. This suggests that the participants in the re-aiming group can be categorized as being aware of, understanding the rotation and having developed an explicit strategy to counter it, which makes them similar to the participants in the instructed group, or not aware of and hence not understanding or strategically countering the rotation.
+
+We can directly test this. We fit a bi-modal distribution to the difference scores in the aiming group, with 5 parameters: a mean and standard deviation for each of the two peaks, and a fraction f [0,1] to multiply probability densities in the one curve and 1/f to multiply probability densities in the other curve. This is fitted to the difference scores in the aiming group, and we will call this the custom-fit model.
+
+First, the standard deviations in the control and instructed groups are much larger than in the aiming group's 2 peaks, perhaps this means that even in the control and instructed groups, people are not exclusively learning either without awareness and strategy (control) or with awareness and strategy (instructed). But, we can compare the means and the fraction of people in either group as determined by normal probability densities from the control and instruction groups or the two distributions fitted to the aiming groups' data.
+
+First, the lower peak in the fitted model (2.3 degrees) is actually higher than the mean of the control groups' difference measure (0.35 degrees; t(23)=2.38, p=.026). However the higher peak from the model (14.9 degrees) is not different from mean of the instructed groups' difference scores (15.4 degrees; t(23)=0.199, p=.843). The fraction of data that the fitted model puts in the lower curve is 0.624, and seperating the aiming participants based on which normal probability density functions is more likely (instructed or control difference scores) puts 15/25 = 0.625 participants in the lower peak, which is not different (binomial exact test: p=1.00). As might be expected, the same 15 participants are put in the lower peak, and the same 9 in the higher peak. In short, this simple model is not in complete agreement with the data, but it does seem to capture some of the dynamics.
+
+We could now also look at the time course of aiming responses of participants in the lower peak (n=15) and the participants in the higher peak (n=9). As a second step, it would be nice if we could see if aiming responses coincide with the fast process of a two-rate model. As a simplification, we could assume that during the PDP no-cursor trials, there is no error feedback to learn from, but there is decay. This is not as good as having actual error-clamp trials, but since we have two top-up periods of 16 trials, that could still work out. If the exclude strategy no-cursor trials measure implicit adaptation, then we could fit an additional model where the slow process has to match the no-cursor trials, and this could also be applied to the control group.
+
+Let's first plot the aiming responses splitted by peak.
+
+
+
+Note that the equations for the two models are exactly equal, the only difference is in how the parameters are determined. We then test if the likelihoods (sum of the log of the probability densities) in the mixture model are significantly worse then the likelihoods in the custom-fit model.
 
 # References
