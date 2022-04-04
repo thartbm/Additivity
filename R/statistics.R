@@ -252,7 +252,23 @@ explicitPostHoc <- function() {
   
   em <- emmeans::emmeans(am, ~group)
   
-  return(pairs(em))
+  cat('posthoc Tukey HSD:\n')
+  
+  print(pairs(em))
+  
+  # Bayesian? JASP -> uncorrected Bayes Factors in output, so it seems hard to do?
+  # or we change the prior odds? will not matter for the result, I guess
+  
+  grouppairs <- list(c('aiming', 'control'), c('aiming', 'instructed'), c('control', 'instructed'))
+  
+  for (grouppair in grouppairs) {
+    
+    cat(sprintf('\n%s vs. %s\n\n', toupper(grouppair[1]), toupper(grouppair[2])))
+    
+    print ( BayesFactor::ttestBF(x = df$explicit[which(df$group == grouppair[1])],
+                                 y = df$explicit[which(df$group == grouppair[2])])  )
+    
+  }
   
 }
 
@@ -285,6 +301,46 @@ explicitRegression <- function(intercept=TRUE) {
   
 }
 
+looseAdditivity <- function() {
+  
+  # first test stuff in the aiming group
+  # (split by aware / unaware? shouldn't matter, right?)
+  
+  # aiming as estimate of explicit adaptation:
+  
+  expldf <- read.csv('data/aiming-aim-blocks.csv', stringsAsFactors = FALSE)
+  
+  pp <- unlist(sprintf('p%03d',1:24))
+  participant <- pp
+  
+  explicit <- as.numeric( colMeans( expldf[ which( expldf$block %in% c(23,27,31) ), pp]) - 
+                            colMeans( expldf[ which( expldf$block %in% c(4,7,10)   ), pp])   )
+  
+  # exclude strategy no-cursor reaches as estimates of implicit adaptation:
+  
+  impldf <- read.csv('data/aiming-nocursors-all.csv', stringsAsFactors = F)
+  row.names(impldf) <- impldf$condition
+  implicit <- as.numeric(impldf['exclude',pp] - impldf['none',pp])
+  
+  # total adaptation:
+  
+  adaptdf <- read.csv('data/aiming-training-blocks.csv', stringsAsFactors = F)
+  
+  adaptation <- as.numeric( colMeans( adaptdf[ which( adaptdf$block %in% c(23,27,31) ), pp]) - 
+                              colMeans( adaptdf[ which( adaptdf$block %in% c(4,7,10)   ), pp])   )
+  
+  
+  
+  df <- data.frame(participant, explicit, implicit, adaptation)
+  
+  LAmod <- lm(adaptation ~ explicit + implicit, data=df)
+  
+  print(summary(LAmod))
+  
+  # print(summary(lm(adaptation ~ explicit, data=df)))
+  # print(summary(lm(adaptation ~ implicit, data=df)))
+  
+}
 
 # mixture model -----
 
@@ -419,6 +475,7 @@ relativeLikelihood <- function(crit) {
 fitModel <- function() {
   
   df <- getExplicitData() 
+  #cat('loaded data\n')
   
   outputlist <- list()
   
@@ -462,9 +519,11 @@ fitModel <- function() {
                             'eM' = eM,
                             'eS' = eS,
                             'f'  = f   )
-  
+  #cat('made search grid\n')
   # get Likelihoods for points in search grid:
   lLs <- apply(searchgrid,FUN=explicitLikelihood,MARGIN=c(1),data=df[which(df$group=='aiming'),])
+  
+  #cat('did search grid\n')
   
   # get 4 best points in the grid:
   topgrid <- searchgrid[order(lLs, decreasing=TRUE)[c(1,5,9,13)],]
@@ -499,6 +558,26 @@ fitModel <- function() {
   
 }
 
+compareBiUniModal <- function() {
+  
+  
+  bimodal <- fitModel()
+  bimodal_lL <- as.numeric(bimodal$logL)
+  
+  
+  df <- getExplicitData()
+  unimodal_lL <- sum( log( dnorm(df$explicit, mean=mean(df$explicit), sd=sd(df$explicit)) ) )
+  
+  logL <- c('bimodal'=bimodal_lL, 'unimodal'=unimodal_lL)
+  print(logL)
+  
+  AICs <- AIClL(logL, k=c(5,2))
+  print(AICs)
+  
+  relL <- relativeLikelihood(AICs)
+  print(relL)
+  
+}
 
 # two-rate model parameter recovery simulation -----
 
@@ -550,5 +629,7 @@ parameterRecovery <- function(N=1000) {
   }
   
   df <- data.frame(Ls, Lf, Rs, Rf)
+  
+  write.csv('data/tworate_parameter_recovery.csv', quote=F, row.names=F)
   
 }
