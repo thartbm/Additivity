@@ -27,7 +27,7 @@ All the raw data for this project is available from OSF. We can use a `Reach` fu
 
 ```{r}
 datalist <- list()
-datalist[['\\']] <- c('aiming.zip', 'control.zip', 'instructed.zip', 'demographics.csv')
+datalist[['\\']] <- c('aiming.zip', 'control.zip', 'instructed.zip', 'demographics.csv', 'modchalingam.zip')
 Reach::downloadOSFdata(repository='kr5eh',
                        filelist=datalist,
                        folder='data',
@@ -36,7 +36,7 @@ Reach::downloadOSFdata(repository='kr5eh',
                        removezips=TRUE)
 ```
 
-There should now be 3 subfolders in the 'data' directory (one for each group) as well asa file called 'demographics.csv' with information about the participants.
+There should now be 4 subfolders in the 'data' directory (one for each of the 3 group, and one for extra data from a study by Modchalingam) as well as file called 'demographics.csv' with information about the participants.
 
 This RStudio Project uses `renv` in an attempt to make sure the same (versions of) packages are used here as we used when we originally wrote the scripts (a few years ago, really). This probably took some time when starting this up. It also means that all those packages are installed in the project folder, so after being done with the project, you might want to free up some disk space by removing it.
 
@@ -160,5 +160,18 @@ Let's first plot the aiming responses splitted by peak.
 
 
 Note that the equations for the two models are exactly equal, the only difference is in how the parameters are determined. We then test if the likelihoods (sum of the log of the probability densities) in the mixture model are significantly worse then the likelihoods in the custom-fit model.
+
+```{r}
+for (target in c('svg', 'pdf')) {
+  fig2_Learning(target=target)
+  fig3_Additivity(target=target)
+  fig4_Explicit(target=target)
+  fig5_Additivity(target=target)
+  fig6_splitAiming(target=target)
+  #figA_slowControl(target=target)
+  #figB_fastInstructed(target=target)
+}
+```
+
 
 # References
