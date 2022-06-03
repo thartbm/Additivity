@@ -155,39 +155,47 @@ getExtraData <- function() {
   
   datasets <- list()
   
-  stepwise <- read.csv('data/extra/Modchalingam_unpublished.csv', stringsAsFactors = FALSE)
-  stepwise$explicit <- stepwise$include - stepwise$exclude
-  stepwise$group <- sprintf('%s_%d', stepwise$group, abs(stepwise$rotation_angle))
-  stepwise$rotation <- abs(stepwise$rotation_angle)
+  df <- read.csv('data/extra/Bond_and_Taylor2015.csv', stringsAsFactors = FALSE)
   
-  datasets[['stepwise']] <- list('paper'='Modchalingam et al. (unpublished)',
-                                 'data'=stepwise,
-                                 'labels' = list('abrupt_60'='abrupt (60°, N=36)',
-                                                 'ramped_60'='ramped (60°, N=33)',
-                                                 'stepwise_15'='stepwise (15°, N=37)',
-                                                 'stepwise_30'='stepwise (30°)',
-                                                 'stepwise_45'='stepwise (45°)',
-                                                 'stepwise_60'='stepwise (60°)'))
+  datasets[['bond2015']] <- list('paper'='Bond & Taylor (2015)',
+                                 'data'=df,
+                                 'labels' = list('rotating' = 'exp. 1, rotating landmarks, 45° (N=10)',
+                                                 'fixed' = 'exp. 1, fixed landmarks, 45° (N=10)',
+                                                 'fifteen'= 'exp. 3, 15° (N=10)',
+                                                 'thirty' = 'exp. 3, 30° (N=10)',
+                                                 'sixty'  = 'exp. 3, 60° (N=10)',
+                                                 'ninety' = 'exp. 3, 90° (N=10)'))
+  
+  
+  df <- read.csv('data/extra/Taylor_cs_45.csv', stringsAsFactors = FALSE)
+  
+  datasets[['taylor_cs']] <- list('paper'='Taylor c.s. (2014, 2016, unpublished)',
+                                  'data'=df,
+                                  'labels' = list('Taylor2014' = 'Taylor et al. (2014), 45° (N=15)',
+                                                  'Brudner2016' = 'Brudner et al. (2016), 45° (N=10)',
+                                                  'unpublished' = 'unpublished, 45° (N=10)'))
+  
   
   df <- read.csv('data/extra/Neville_and_Cressman_2018.csv', stringsAsFactors = FALSE)
   df$group <- sprintf('%s_%d',c('control','instructed')[df$instruction],df$rotation)
   df$explicit <- df$include - df$exclude
+  df$implicit <- df$exclude
   
   datasets[['neville']] <- list('paper'='Neville & Cressman (2018)',
                                 'data'=df,
-                                'labels' = list('control_20'='control (20°, N=11)',
-                                                'control_40'='control (40°, N=10)',
-                                                'control_60'='control (60°, N=10)',
-                                                'instructed_20'='instructed (20°, N=11)',
-                                                'instructed_40'='instructed (40°, N=10)',
-                                                'instructed_60'='instructed (60°, N=10)'))
+                                'labels' = list('control_20'='control 20° (N=11)',
+                                                'control_40'='control 40° (N=10)',
+                                                'control_60'='control 60° (N=10)',
+                                                'instructed_20'='instructed 20° (N=11)',
+                                                'instructed_40'='instructed 40° (N=10)',
+                                                'instructed_60'='instructed 60° (N=10)'))
   
   
   df <- read.csv('data/extra/Schween_etal_2018_2019.csv', stringsAsFactors = FALSE)
   names(df)[which(names(df) == 'experiment')] <- 'group'
   r.idx <- which(df$workspace == 'right')
   for (dv in c('implicit','explicit','adaptation')) {
-    df[r.idx,dv] <- df[r.idx,dv] * -1
+   df[r.idx,dv] <- df[r.idx,dv] * -1
   }
   
   df <- aggregate(cbind(implicit, adaptation, explicit) ~ participant + group, data=df, FUN=mean)
@@ -195,23 +203,12 @@ getExtraData <- function() {
   
   datasets[['schween']] <- list('paper'='Schween et al. (2018; 2019)',
                                 'data'=df,
-                                'labels' = list('one'='2018: exp. 1, (45°, N=21)',
-                                                'two'='2019: exp. 3, (45°, N=20)'))
-  
-  df <- read.csv('data/extra/Maresch_2020.csv', stringsAsFactors = FALSE)
-  df$explicit <- df$aimreport
-  df$rotation <- 60
-  
-  datasets[['maresch2020']] <- list('paper'='Maresch et al. (2020)',
-                                    'data'=df,
-                                    'labels' = list('CR'='continuous report (60°, N=12)',
-                                                    'IR_E'='exclusion (60°, N=17)',
-                                                    'IR_I'='inclusion (60°, N=12)',
-                                                    'IR_EI'='exclusion & inclusion (60°, N=11)'))
-  
+                                'labels' = list('one'='2018: exp. 1, 45° (N=21)',
+                                                'two'='2019: exp. 3, 45° (N=20)'))
 
   df <- read.csv('data/extra/Modchalingam_2019.csv', stringsAsFactors=FALSE)
   df$explicit <- df$include - df$exclude
+  df$implicit <- df$exclude
   df$rotation <- c('control30'=30,
                    'control60'=60,
                    'instructed30'=30,
@@ -219,12 +216,84 @@ getExtraData <- function() {
   
   datasets[['modchalingam2019']] <- list('paper'='Modchalingam et al. (2019)',
                                          'data'=df,
-                                         'labels' = list('control30'='control (30°, N=20)',
-                                                         'control60'='control (60°, N=20)',
-                                                         'instructed30'='instructed (30°, N=21)',
-                                                         'instructed60'='instructed (60°, N=24)'))
+                                         'labels' = list('control30'='control 30° (N=20)',
+                                                         'control60'='control 60° (N=20)',
+                                                         'instructed30'='instructed 30° (N=21)',
+                                                         'instructed60'='instructed 60° (N=24)'))
+  
+  df <- read.csv('data/extra/Maresch_2020.csv', stringsAsFactors = FALSE)
+  df$explicit <- df$aimreport
+  df$rotation <- 60
+  df$implicit <- df$exclude
+  
+  datasets[['maresch2020']] <- list('paper'='Maresch et al. (2020)',
+                                    'data'=df,
+                                    'labels' = list('CR'='continuous report, 60°, (N=12)',
+                                                    'IR_E'='exclusion, 60°, (N=17)',
+                                                    'IR_I'='inclusion, 60° (N=12)',
+                                                    'IR_EI'='exclusion & inclusion, 60° (N=11)'))
+  
+  
+  df <- read.csv('data/extra/Decarie_and_Cressman_2022.csv', stringsAsFactors = FALSE)
+  df$rotation <- 30
+  
+  datasets[['decarie_and_cressman']] <- list('paper' = 'Decarie & Cressman (2022)',
+                                             'data' = df,
+                                             'labels' = list('PTWF' = 'feedback, 30° (N=24)',
+                                                             'PTNF' = 'no feedback, 30° (N=24)',
+                                                             'CTRL' = 'control, 30° (N=24)'))
+  
+  stepwise <- read.csv('data/extra/Modchalingam_unpublished.csv', stringsAsFactors = FALSE)
+  stepwise$explicit <- stepwise$include - stepwise$exclude
+  #stepwise$group <- sprintf('%s_%d', stepwise$group, abs(stepwise$rotation_angle))
+  stepwise$rotation <- abs(stepwise$rotation_angle)
+  stepwise$implicit <- stepwise$exclude
+  stepwise$participant <- stepwise$ppt
+  
+  datasets[['stepwise']] <- list('paper'='Modchalingam et al. (unpublished)',
+                                 'data'=stepwise,
+                                 'labels' = list('abrupt_60'='abrupt, 60°, (N=36)',
+                                                 'ramped_60'='ramped, 60° (N=33)',
+                                                 'stepwise_15'='stepwise, 15° (N=37)',
+                                                 'stepwise_30'='stepwise, 30°',
+                                                 'stepwise_45'='stepwise, 45°',
+                                                 'stepwise_60'='stepwise, 60°'))
   
   return(datasets)
+  
+}
+
+rbindExtrData <- function() {
+  
+  datasets <- getAllExtraData()
+  
+  alldata <- NA
+  
+  for (dataset in datasets) {
+    
+    subdf <- dataset[['data']]
+    
+    print(dataset[['paper']])
+    print(str(subdf))
+    
+    subdf <- subdf[,c('group','participant','rotation','adaptation','explicit','implicit')]
+    
+    subdf$paper <- dataset[['paper']]
+    subdf$grouplabel <- dataset[['labels']][subdf$group]
+    
+    if (is.data.frame(alldata)) {
+      alldata <- rbind(alldata, subdf)
+    } else {
+      alldata <- subdf
+    }
+    
+  }
+  
+  for (colname in names(alldata)) {
+    alldata[,colname] <- unlist(alldata[,colname])
+  }
+  
+  return(alldata)
   
 }
 
@@ -233,11 +302,11 @@ getAdditivitySlopes <- function(implicit,explicit,adaptation) {
   # library(scales)
   # scales::viridis_pal(begin= 0.1, end=1.0)(4)
   colors.op <- c("#482576FF", "#2A788EFF", "#43BF71FF", "#FDE725FF")
-  colors.tr <- c("#4825764F", "#2A788E4F", "#43BF714F", "#FDE7254F")
+  colors.tr <- c("#4825763F", "#2A788E3F", "#43BF713F", "#FDE7253F")
   
   output <- list()
   
-  output[['colors']] <- list('op'=list(c(colors.op,"#999999FF")), 'tr'=list(c(colors.tr,"#9999994F")))
+  output[['colors']] <- list('op'=list(c(colors.op,"#999999FF")), 'tr'=list(c(colors.tr,"#99999927")))
   
   output[['strict']] <- list()
   output[['loose']]  <- list()
@@ -248,12 +317,17 @@ getAdditivitySlopes <- function(implicit,explicit,adaptation) {
   slope    <- coef[2]
   slope_ci <- confint(e2i,parm='explicit',level=0.95)
   
-  output$strict[['intercept']] <- coef[1]
+  # we use orthogonal distance regression instead, to stay away from slope=0 as much as possible
+  
+  #slope    <- ODR_slope(X=explicit, y=implicit, bootstraps=NA)
+  #slope_ci <- ODR_slope(X=explicit, y=implicit, bootstraps=1000)
+
+  #output$strict[['intercept']] <- coef[1]
   output$strict[['slope']]     <- slope
   output$strict[['slope_ci']]  <- slope_ci
   
   op <- "#999999FF"
-  tr <- "#9999994F"
+  tr <- "#99999927"
   
   if ((slope_ci[1] < -1) & (-1 < slope_ci[2]) & (slope_ci[2] < 0)) {
     op <- colors.op[1]
@@ -293,7 +367,7 @@ getAdditivitySlopes <- function(implicit,explicit,adaptation) {
   output$loose[['slope_ci']] <- slope_ci
   
   op <- "#999999FF"
-  tr <- "#9999994F"
+  tr <- "#9999992F"
   
   if ((slope_ci[2] > 1) & (1 > slope_ci[1]) & (slope_ci[1] > 0)) {
     op <- colors.op[1]
@@ -344,6 +418,29 @@ satCol <- function(col='#41ffc9', sat.mult=1.25) {
   
   return(hsv(inter[1,], inter[2,], inter[3,]))
   
+}
+
+## Transparent colors
+## Mark Gardener 2015
+## www.dataanalytics.org.uk
+
+t_col <- function(color, percent = 50, name = NULL) {
+  #      color = color name
+  #    percent = % transparency
+  #       name = an optional name for the color
+  
+  ## Get RGB values for named color
+  rgb.val <- col2rgb(color)
+  
+  ## Make new color using input color as base and alpha set by transparency
+  t.col <- rgb(rgb.val[1], rgb.val[2], rgb.val[3],
+               max = 255,
+               alpha = (100 - percent) * 255 / 100,
+               names = name)
+  
+  ## Save the color
+  #invisible(t.col)
+  return(t.col)
 }
 
 
@@ -1670,13 +1767,13 @@ figB_fastInstructed <- function(target='inline') {
 let1_Learning_PointEstimates <- function(target='inline') {
   
   if (target=='svg') {
-    svglite::svglite(file='doc/letter_Fig1_learning.svg', width=8, height=3, fix_text_size = FALSE)
+    svglite::svglite(file='doc/letter_Fig1_learning.svg', width=8, height=6, fix_text_size = FALSE)
   }
   if (target=='pdf') {
-    cairo_pdf(filename='doc/letter_Fig1_learning.pdf', width=8, height=3)
+    cairo_pdf(filename='doc/letter_Fig1_learning.pdf', width=8, height=6)
   }
   
-  textsize <- 0.8
+  textsize <- 1.35
   
   # we will plot all data by trial
   # and illustrate the paradigm at the same time
@@ -1690,14 +1787,14 @@ let1_Learning_PointEstimates <- function(target='inline') {
   
   # plot conditions (no cursors & rotations)
   
-  layout(mat=matrix(c(1,2),nrow=1,ncol=2),widths=c(2,1))
+  layout(mat=matrix(c(1,1,2,3,4,5),nrow=2,ncol=3,byrow=TRUE))
   
   par(mar=c(2,4,0,0.1))
   
   plot(-1000,-1000,main='',xlab='', ylab='', xlim=c(0,265), ylim=c(-7,40), ax=F, bty='n')
-  text(0,35,'A: adaptation and re-aiming', font.main=1, cex=1.35, adj=0)
-  title(xlab='time: trials per block', line = 0.5)
-  title(ylab='reach/aim deviation [°]', line = 2.5)
+  text(0,35,'A: adaptation and re-aiming', font.main=1, cex=1.35*1.5, adj=0)
+  title(xlab='time: trials per block', line = 0.5,cex.lab=textsize)
+  title(ylab='reach/aim deviation [°]', line = 2.5,cex.lab=textsize)
   
   plotBlocks(textsize = textsize)
   
@@ -1745,7 +1842,7 @@ let1_Learning_PointEstimates <- function(target='inline') {
   col.tr <- as.character(groups$col.tr[which(groups$group == group)])
   
   groupnames <- c(groupnames, as.character(groups$label[which(groups$group == group)]))
-  groupcols <- c(groupcols, col.op)
+  groupcols  <- c(groupcols, col.op)
   
   for (block in blocks) {
     
@@ -1761,17 +1858,17 @@ let1_Learning_PointEstimates <- function(target='inline') {
   legend(-5,30,legend=groupnames,col=groupcols, bty='n', lty=1, cex=textsize)
   
   
-  axis(side=2, at=c(0,15,30))
+  axis(side=2, at=c(0,15,30),cex.axis=textsize)
   
   
   par(mar=c(2,0,0,0.1))
   
-  plot(-1000,-1000,main='',xlab='', ylab='', xlim=c(-1,22), ylim=c(-7,40), ax=F, bty='n')
+  plot(-1000,-1000,main='',xlab='', ylab='', xlim=c(-1,25), ylim=c(-7,40), ax=F, bty='n')
   #title(ylab='reach deviation [°]', line=2.5)
-  text(0,35,'B: point estimates', font.main=1, cex=1.35, adj=0)
+  text(0,35,'B: average measures', font.main=1, cex=1.35*1.5, adj=0)
   
-  lines(x=c(0,21),y=c(0, 0 ),col="#999999", lw=1, lty=1)
-  lines(x=c(0,21),y=c(30,30),col="#999999", lw=1, lty=1)
+  lines(x=c(0,24),y=c(0, 0 ),col="#999999", lw=1, lty=1)
+  lines(x=c(0,24),y=c(30,30),col="#999999", lw=1, lty=1)
   
   grouplabels <- c()
   groupcols <- c()
@@ -1838,7 +1935,7 @@ let1_Learning_PointEstimates <- function(target='inline') {
     points(x=rep(xoffset+1, length(adaptation)), adaptation, pch=16, col=col.tr)
     
     #text(x=(groupno*8)-1.5,y=-1,labels='adaptation', adj=c(0,.5), srt=-45, cex=textsize)
-    
+    print(xoffset)
   }
   
   df <- read.csv('data/aiming-aim-blocks.csv', stringsAsFactors = F)
@@ -1849,7 +1946,8 @@ let1_Learning_PointEstimates <- function(target='inline') {
   col.tr <- as.character(groups$col.tr[which(groups$group == 'aims')])
   CI <- Reach::getConfidenceInterval(aims, method='b')
   avg <- mean(aims)
-  xoffset <- (groupno*2) - 1
+  #xoffset <- (groupno*2) - 1
+  xoffset <- 22
   polygon(x=c(-.5,.5,.5,-.5)+xoffset, y=c(rep(CI[1],2),rep(CI[2],2)), col='#FFFFFF00', border=col.tr)
   lines(x=c(-.5,.5)+xoffset, y=rep(avg,2), col=col.op)
   # replace with lines?
@@ -1859,37 +1957,33 @@ let1_Learning_PointEstimates <- function(target='inline') {
   groupcols <- c(groupcols, col.op)
   
   
-  text(x = 10.5, y=-6, labels='exclude',    cex=textsize)
-  text(x =  3.5, y=-6, labels='adaptation', cex=textsize)
-  text(x = 17.5, y=-6, labels='include',    cex=textsize)
+  # text(x = 10.5, y=-6, labels='exclude',    cex=textsize)
+  # text(x =  3.5, y=-6, labels='adaptation', cex=textsize)
+  # text(x = 17.5, y=-6, labels='include',    cex=textsize)
+  # text(x = 22.5, y=-6, labels='aims',       cex=textsize)
+  
+  text( x = c(3.5, 10.5, 17.5, 22.5), 
+        y = rep(-5, 4),
+        labels = c('adaptation', 'exclude', 'include', 'aims'),
+        adj=c(0.5,1),
+        cex=textsize
+        )
   
   #legend(0,15,legend=grouplabels,col=groupcols, bty='n', lty=1, cex=textsize)
   
   #axis(side=2, at=c(0,15,30))
   
-  if (target %in% c('svg','pdf')) {
-    dev.off()
-  }
   
-}
-
-let2_PointEstimateAdditivity <- function(target='inline') {
+  # # # # # # # # # # # # # # 
+  # SECOND ROW OF PLOT
   
-  if (target == 'svg') {
-    svglite::svglite(file='doc/letter_Fig2_pointestimates.svg', width=8, height=3, fix_text_size = FALSE)
-  }
-  if (target == 'pdf') {
-    cairo_pdf(filename='doc/letter_Fig2_pointestimates.pdf', width=8, height=3)
-  }
-  
-  textsize <- 1.5
+  #textsize <- 1.5
   
   
-  layout(matrix(c(1,2,3), nrow=1, ncol=3))
   par(mar=c(4.5,4,0,0.1))
   
   plot(-1000,-1000,main='',xlab='', ylab='', xlim=c(-7.5,27.5), ylim=c(-5,30), ax=F, bty='n',asp=1)
-  text(-7.5,30,'A: explicit measures', font.main=1, cex=1.35*1.5, adj=0)
+  text(-7.5,30,'C: explicit measures', font.main=1, cex=1.35*1.5, adj=0)
   title(xlab='aims [°]', line=2.5, cex.lab=textsize)
   title(ylab='difference score [°]', line=2.5, cex.lab=textsize)
   
@@ -1904,7 +1998,7 @@ let2_PointEstimateAdditivity <- function(target='inline') {
   groups <- getGroups()
   col.op <- as.character(groups$col.op[which(groups$group == 'aiming')])
   col.tr <- as.character(groups$col.tr[which(groups$group == 'aiming')])
-    
+  
   
   aims <- as.numeric( colMeans( df[ which( df$block %in% c(23,27,31) ), pp]) - 
                         colMeans( df[ which( df$block %in% c(4,7,10)   ), pp])   )
@@ -1952,10 +2046,12 @@ let2_PointEstimateAdditivity <- function(target='inline') {
   
   
   plot(-1000,-1000,main='',xlab='', ylab='', xlim=c(-10,45), ylim=c(-10,45), ax=F, bty='n', asp=1)
-  text(-10,45,'B: strict additivity', font.main=1, cex=1.35*1.5, adj=0)
+  text(-10,45,'D: strict additivity', font.main=1, cex=1.35*1.5, adj=0)
   lines(x=at,y=(at*-1)+total,col="#999999", lw=1, lty=1)
   lines(x=c(0,40),y=c(0,0),col='#999999', lw=1, lty=2)
   lines(x=c(0,0),y=c(0,40),col='#999999', lw=1, lty=2)
+  
+  points(c(0,total),c(total,0),col='#000000')
   
   for (groupno in c(1:length(groupnames))) {
     
@@ -2047,14 +2143,17 @@ let2_PointEstimateAdditivity <- function(target='inline') {
   title(xlab='explicit measure [°]', line=2.5, cex.lab=textsize)
   axis(side=1, at=c(-10,15,40), cex.axis=textsize)
   
-  legend(15,40,legend=grouplabels,col=groupcols, bty='n', lty=1, cex=0.8*1.5)
+  legend(1,45,
+         legend=c(grouplabels[1:2],'aiming (difference)','aiming (report)'),
+         col=groupcols, 
+         bty='n', lty=1, cex=0.8*1.5)
   
   # # # # # # # # # # # 
   # LOOSE ADDITIVITY
   # 
   
   plot(-1000,-1000,main='',xlab='', ylab='', xlim=c(0,45), ylim=c(0,45), ax=F, bty='n', asp=1)
-  text(0,45,'C: loose additivity', font.main=1, cex=1.35*1.5, adj=0)
+  text(0,45,'E: loose additivity', font.main=1, cex=1.35*1.5, adj=0)
   #lines(x=c(5,45),y=c(5,45),col="#999999", lw=1, lty=1)
   lines(x=c(0,40),y=c(0,40),col="#999999", lw=1, lty=1)
   
@@ -2146,7 +2245,10 @@ let2_PointEstimateAdditivity <- function(target='inline') {
   
   points(predictions, adapt, pch=16, col=col.tr)
   
-  
+  legend(12,15,
+         legend=c(grouplabels[1:2],'aiming (Inc-Exc)','aiming (reports)'),
+         col=groupcols, 
+         bty='n', lty=1, cex=0.8*1.5)
   
   #title(main='loose additivity')
   
@@ -2162,6 +2264,296 @@ let2_PointEstimateAdditivity <- function(target='inline') {
   }
   
 }
+
+# old_let2_PointEstimateAdditivity <- function(target='inline') {
+#   
+#   if (target == 'svg') {
+#     svglite::svglite(file='doc/letter_Fig2_pointestimates.svg', width=8, height=3, fix_text_size = FALSE)
+#   }
+#   if (target == 'pdf') {
+#     cairo_pdf(filename='doc/letter_Fig2_pointestimates.pdf', width=8, height=3)
+#   }
+#   
+#   textsize <- 1.5
+#   
+#   
+#   layout(matrix(c(1,2,3), nrow=1, ncol=3))
+#   par(mar=c(4.5,4,0,0.1))
+#   
+#   plot(-1000,-1000,main='',xlab='', ylab='', xlim=c(-7.5,27.5), ylim=c(-5,30), ax=F, bty='n',asp=1)
+#   text(-7.5,30,'A: explicit measures', font.main=1, cex=1.35*1.5, adj=0)
+#   title(xlab='aims [°]', line=2.5, cex.lab=textsize)
+#   title(ylab='difference score [°]', line=2.5, cex.lab=textsize)
+#   
+#   df <- read.csv('data/aiming-aim-blocks.csv', stringsAsFactors = F)
+#   pp <- sprintf('p%03d',c(1:24))
+#   
+#   adf <- getAdditivityData()
+#   
+#   idx <- which(adf$group == 'aiming')
+#   explicit <- adf[idx,'include'] - adf[idx,'exclude']
+#   
+#   groups <- getGroups()
+#   col.op <- as.character(groups$col.op[which(groups$group == 'aiming')])
+#   col.tr <- as.character(groups$col.tr[which(groups$group == 'aiming')])
+#     
+#   
+#   aims <- as.numeric( colMeans( df[ which( df$block %in% c(23,27,31) ), pp]) - 
+#                         colMeans( df[ which( df$block %in% c(4,7,10)   ), pp])   )
+#   
+#   at <- range(aims)
+#   
+#   at <- c(-2,20)
+#   
+#   points(aims,explicit,pch=16,col=col.tr)
+#   lines(at,at,col='#666666',lty=2)
+#   
+#   #print(cor.test(aims,explicit))
+#   
+#   A2R <- lm(explicit ~ aims)
+#   
+#   coef <- A2R$coefficients
+#   lines(at, coef[1]+(at*coef[2]), col=col.op)
+#   
+#   
+#   ci <- predict( A2R,
+#                  newdata=data.frame(aims=seq(-2,20,.2)),
+#                  interval = "confidence")
+#   
+#   X <- c(seq(-2,20,.2),rev(seq(-2,20,.2)))
+#   Y <- c(ci[,'lwr'],rev(ci[,'upr']))
+#   polygon(x=X,y=Y,col=col.tr,border=NA)
+#   
+#   
+#   axis(side=1, at=c(0,10,20), cex.axis=textsize)
+#   axis(side=2, at=c(0,10,20), cex.axis=textsize)
+#   
+#   # # # # # # # # # 3 # # # # # #
+#   # STRICT ADDITIVITY
+#   
+#   grouplabels <- c()
+#   groupcols <- c()
+#   
+#   adf <- getAdditivityData()
+#   
+#   total <- mean(adf$adaptation)
+#   at <- c(-10,10+total) 
+#   
+#   groups <- getGroups()
+#   groupnames <- c('control', 'instructed', 'aiming')
+#   
+#   
+#   plot(-1000,-1000,main='',xlab='', ylab='', xlim=c(-10,45), ylim=c(-10,45), ax=F, bty='n', asp=1)
+#   text(-10,45,'B: strict additivity', font.main=1, cex=1.35*1.5, adj=0)
+#   lines(x=at,y=(at*-1)+total,col="#999999", lw=1, lty=1)
+#   lines(x=c(0,40),y=c(0,0),col='#999999', lw=1, lty=2)
+#   lines(x=c(0,0),y=c(0,40),col='#999999', lw=1, lty=2)
+#   
+#   for (groupno in c(1:length(groupnames))) {
+#     
+#     groupname <- groupnames[groupno]
+#     
+#     col.op <- as.character(groups$col.op[which(groups$group == groupname)])
+#     col.tr <- as.character(groups$col.tr[which(groups$group == groupname)])
+#     
+#     grouplabels <- c(grouplabels, as.character(groups$label[which(groups$group == groupname)]))
+#     groupcols <- c(groupcols, col.op)
+#     
+#     idx <- which(adf$group == groupname)
+#     excl <- adf[idx,'exclude']
+#     incl <- adf[idx,'include']
+#     adapt <- adf[idx,'adaptation']
+#     
+#     expl <- incl - excl
+#     
+#     at <- range(expl)
+#     
+#     e2i <- lm(excl ~ expl)
+#     
+#     
+#     cat(sprintf('%s:\n',toupper(groupname)))
+#     #print(summary(I2A))
+#     
+#     coef <- e2i$coefficients
+#     lines(at, coef[1]+(at*coef[2]), col=col.op)
+#     
+#     
+#     ci <- predict( e2i,
+#                    newdata=data.frame(expl=seq(at[1],at[2],length.out=40)),
+#                    interval = "confidence")
+#     
+#     X <- c(seq(at[1],at[2],length.out=40),rev(seq(at[1],at[2],length.out=40)))
+#     Y <- c(ci[,'lwr'],rev(ci[,'upr']))
+#     polygon(x=X,y=Y,col=col.tr,border=NA)
+#     
+#     points(expl, excl, pch=16, col=col.tr)
+#     
+#     print(confint(e2i,parm='expl',level=0.95))
+#     print(confint(e2i,parm='(Intercept)',level=0.95))
+#     
+#   }
+#   
+#   #print(mean(adf$adaptation))
+#   
+#   col.op <- as.character(groups$col.op[which(groups$group == 'aims')])
+#   col.tr <- as.character(groups$col.tr[which(groups$group == 'aims')])
+#   
+#   grouplabels <- c(grouplabels, 'aims')
+#   groupcols <- c(groupcols, col.op)
+#   
+#   idx <- which(adf$group == 'aiming')
+#   expl <- adf$aiming[idx]
+#   impl <- adf$exclude[idx]
+#   adapt <- adf$adaptation[idx]
+#   
+#   at <- range(expl)
+#   
+#   e2i <- lm(impl ~ expl)
+#   
+#   
+#   cat(sprintf('%s:\n',toupper('aims')))
+#   print(confint(e2i,parm='expl',level=0.95))
+#   print(confint(e2i,parm='(Intercept)',level=0.95))
+#   #print(summary(I2A))
+#   
+#   coef <- e2i$coefficients
+#   lines(at, coef[1]+(at*coef[2]), col=col.op)
+#   
+#   
+#   ci <- predict( e2i,
+#                  newdata=data.frame(expl=seq(at[1],at[2],length.out=40)),
+#                  interval = "confidence")
+#   
+#   X <- c(seq(at[1],at[2],length.out=40),rev(seq(at[1],at[2],length.out=40)))
+#   Y <- c(ci[,'lwr'],rev(ci[,'upr']))
+#   polygon(x=X,y=Y,col=col.tr,border=NA)
+#   
+#   points(expl, impl, pch=16, col=col.tr)
+#   
+#   
+#   #title(main='strict additivity')
+#   
+#   title(ylab='implicit measure [°]', line=2.5, cex.lab=textsize)
+#   axis(side=2, at=c(-10,15,40), cex.axis=textsize)
+#   
+#   title(xlab='explicit measure [°]', line=2.5, cex.lab=textsize)
+#   axis(side=1, at=c(-10,15,40), cex.axis=textsize)
+#   
+#   legend(15,40,legend=grouplabels,col=groupcols, bty='n', lty=1, cex=0.8*1.5)
+#   
+#   # # # # # # # # # # # 
+#   # LOOSE ADDITIVITY
+#   # 
+#   
+#   plot(-1000,-1000,main='',xlab='', ylab='', xlim=c(0,45), ylim=c(0,45), ax=F, bty='n', asp=1)
+#   text(0,45,'C: loose additivity', font.main=1, cex=1.35*1.5, adj=0)
+#   #lines(x=c(5,45),y=c(5,45),col="#999999", lw=1, lty=1)
+#   lines(x=c(0,40),y=c(0,40),col="#999999", lw=1, lty=1)
+#   
+#   for (groupno in c(1:length(groupnames))) {
+#     
+#     groupname <- groupnames[groupno]
+#     
+#     col.op <- as.character(groups$col.op[which(groups$group == groupname)])
+#     col.tr <- as.character(groups$col.tr[which(groups$group == groupname)])
+#     
+#     idx <- which(adf$group == groupname)
+#     
+#     incl  <- adf$include[idx]
+#     impl  <- adf$exclude[idx]
+#     expl  <- incl - excl
+#     adapt <- adf$adaptation[idx]
+#     
+#     
+#     
+#     
+#     EIadd <- lm(adapt ~ impl + expl + 0)
+#     
+#     cat(sprintf('%s:\n',toupper(groupname)))
+#     #print(summary(EIadd))
+#     
+#     coef <- EIadd$coefficients
+#     
+#     #print(coef)
+#     
+#     # plot actual adaptation over predicted values:
+#     
+#     predictions <- predict(EIadd)
+#     at <- range(predictions)
+#     p2a <- lm(adapt ~ predictions)
+#     #print(summary(p2a))
+#     pcoef <- p2a$coefficients
+#     print(confint(p2a,parm='predictions',level=0.95))
+#     lines(at, pcoef[1]+(at*pcoef[2]), col=col.op)
+#     
+#     ci <- predict( p2a,
+#                    newdata=data.frame(predictions=seq(at[1],at[2],length.out=40)),
+#                    interval = "confidence")
+#     
+#     X <- c(seq(at[1],at[2],length.out=40),rev(seq(at[1],at[2],length.out=40)))
+#     Y <- c(ci[,'lwr'],rev(ci[,'upr']))
+#     polygon(x=X,y=Y,col=col.tr,border=NA)
+#     
+#     points(predictions, adapt, pch=16, col=col.tr)
+#     
+#     
+#   }
+#   
+#   
+#   col.op <- as.character(groups$col.op[which(groups$group == 'aims')])
+#   col.tr <- as.character(groups$col.tr[which(groups$group == 'aims')])
+#   
+#   idx <- which(adf$group == 'aiming')
+#   expl <- adf$aiming[idx]
+#   impl <- adf$exclude[idx]
+#   adapt <- adf$adaptation[idx]
+#   
+#   
+#   EIadd <- lm(adapt ~ impl + expl + 0)
+#   
+#   cat(sprintf('%s:\n',toupper('aims')))
+#   #print(summary(EIadd))
+#   
+#   coef <- EIadd$coefficients
+#   
+#   #print(coef)
+#   
+#   # plot actual adaptation over predicted values:
+#   
+#   predictions <- predict(EIadd)
+#   at <- range(predictions)
+#   p2a <- lm(adapt ~ predictions)
+#   #print(summary(p2a))
+#   pcoef <- p2a$coefficients
+#   print(confint(p2a,parm='predictions',level=0.95))
+#   lines(at, pcoef[1]+(at*pcoef[2]), col=col.op)
+#   
+#   ci <- predict( p2a,
+#                  newdata=data.frame(predictions=seq(at[1],at[2],length.out=40)),
+#                  interval = "confidence")
+#   
+#   X <- c(seq(at[1],at[2],length.out=40),rev(seq(at[1],at[2],length.out=40)))
+#   Y <- c(ci[,'lwr'],rev(ci[,'upr']))
+#   polygon(x=X,y=Y,col=col.tr,border=NA)
+#   
+#   points(predictions, adapt, pch=16, col=col.tr)
+#   
+#   
+#   
+#   #title(main='loose additivity')
+#   
+#   title(ylab='adaptation [°]', line=2.5, cex.lab=textsize)
+#   axis(side=2, at=c(0,20,40), cex.axis=textsize)
+#   
+#   title(xlab=expression(paste(beta[i] %.% implicit + beta[e] %.% explicit)), line=3, cex.lab=textsize)
+#   axis(side=1, at=c(0,15,30,45), cex.axis=textsize)
+#   
+#   
+#   if (target %in% c('pdf','svg')) {
+#     dev.off()
+#   }
+#   
+# }
 
 
 
@@ -2793,13 +3185,13 @@ let2_PointEstimateAdditivity <- function(target='inline') {
 # }
 
 
-let3_Awareness_TwoRate <- function(target='inline') {
+let2_Awareness_TwoRate <- function(target='inline') {
   
   if (target=='svg') {
-    svglite::svglite(file='doc/letter_Fig4_tworate.svg', width=8, height=3, fix_text_size = FALSE)
+    svglite::svglite(file='doc/letter_Fig2_tworate.svg', width=8, height=3, fix_text_size = FALSE)
   }
   if (target=='pdf') {
-    cairo_pdf(filename='doc/letter_Fig4_tworate.pdf', width=8, height=3)
+    cairo_pdf(filename='doc/letter_Fig2_tworate.pdf', width=8, height=3)
   }
   
   textsize <- 0.8
@@ -2870,7 +3262,8 @@ let3_Awareness_TwoRate <- function(target='inline') {
   
   dX <- (prob_dens / sum(prob_dens)) * 150
   
-  lines(dX+18, dY, col="#001388FF", lty=2)
+  #lines(dX+18, dY, col="#001388FF", lty=2)
+  lines(dX+18, dY, col="#000000FF", lty=2)
   
   text(16, iM, 'unaware', srt=90, cex=0.8)
   text(16, eM, 'aware', srt=90, cex=0.8)
@@ -2880,8 +3273,10 @@ let3_Awareness_TwoRate <- function(target='inline') {
   eLM <- dnorm(dataM$explicit, mean=eM, sd=eS)
   prob_dens_M <- (f*iLM) + ((1-f)*eLM)
   
-  lines(c(18,18+((prob_dens_M[1]/sum(prob_dens))*150)),c(iM,iM), col="#001388FF", lty=1)
-  lines(c(18,18+((prob_dens_M[2]/sum(prob_dens))*150)),c(eM,eM), col="#001388FF", lty=1)
+  # lines(c(18,18+((prob_dens_M[1]/sum(prob_dens))*150)),c(iM,iM), col="#001388FF", lty=1)
+  # lines(c(18,18+((prob_dens_M[2]/sum(prob_dens))*150)),c(eM,eM), col="#001388FF", lty=1)
+  lines(c(18,18+((prob_dens_M[1]/sum(prob_dens))*150)),c(iM,iM), col="#000000FF", lty=1)
+  lines(c(18,18+((prob_dens_M[2]/sum(prob_dens))*150)),c(eM,eM), col="#000000FF", lty=1)
   
   axis(side=2, at=c(0,15,30))
   
@@ -2926,12 +3321,31 @@ let3_Awareness_TwoRate <- function(target='inline') {
     
     #print(str(sdf))
     
-    if (strategy) {group <- 'aiming'; groupname <- 'aware aimers (N=9)'} else {group <- 'aims'; groupname <- 'unaware aimers (N=15)'}
-    col.op <- as.character(groups$col.op[which(groups$group == group)])
-    col.tr <- as.character(groups$col.tr[which(groups$group == group)])
+    if (strategy) {
+      group <- 'aiming'
+      groupname <- 'aware aimers (N=9)'
+      col.op.expl <- as.character(groups$col.op[which(groups$group == 'aiming')])
+      col.op.impl <- as.character(groups$col.op[which(groups$group == 'aims')])
+    } else {
+      group <- 'aims'
+      groupname <- 'unaware aimers (N=15)'
+      col.op.expl <- '#0047AB'
+      col.op.impl <- '#00d0d0'
+      
+      # azure blue: #007FFF
+      # turquoise:  #00FFEF
+      # cyan:       #00B7EB # implicit
+      # cobalt:     #0047AB # explicit
+      # 
+      # 
+    }
+    #col.op <- as.character(groups$col.op[which(groups$group == group)])
+
+    # not using transparent colors right now:
+    #col.tr <- as.character(groups$col.tr[which(groups$group == group)])
     
     groupnames <- c(groupnames, groupname)
-    groupcols <- c(groupcols, col.op)
+    groupcols <- c(groupcols, col.op.expl)
     
     blocks <- list(seq(1,32), seq(41,56), seq(65,80), seq(89,184), seq(201, 216), seq(233,248))
     
@@ -2946,8 +3360,8 @@ let3_Awareness_TwoRate <- function(target='inline') {
       CI.hi <- as.numeric(CI[2,])
       average <- rowMeans(bdf, na.rm=TRUE)
       
-      polygon(x=c(block, rev(block)),y=c(CI.lo, rev(CI.hi)), col=col.tr, border=NA)
-      lines(block, average, col=col.op)
+      polygon(x=c(block, rev(block)),y=c(CI.lo, rev(CI.hi)), col=t_col(col.op.expl, percent = 80), border=NA)
+      lines(block, average, col=col.op.expl)
       
     }
     
@@ -2962,9 +3376,17 @@ let3_Awareness_TwoRate <- function(target='inline') {
     
     sdf <- df[which(df$participant %in% split_aim$ppno[which(split_aim$strategy == strategy)]),]
     
-    if (strategy) {group <- 'aiming'; groupname <- 'aware aimers'} else {group <- 'aims'; groupname <- 'unaware aimers'}
-    col.op <- as.character(groups$col.op[which(groups$group == group)])
-    col.tr <- as.character(groups$col.tr[which(groups$group == group)])
+    if (strategy) {
+      group <- 'aiming'
+      groupname <- 'aware aimers (N=9)'
+      col.op.expl <- as.character(groups$col.op[which(groups$group == 'aiming')])
+      col.op.impl <- as.character(groups$col.op[which(groups$group == 'aims')])
+    } else {
+      group <- 'aims'
+      groupname <- 'unaware aimers (N=15)'
+      col.op.expl <- '#0047AB'
+      col.op.impl <- '#00d0d0'
+    }
     
     baseline <- aggregate(reachdeviation_deg ~ participant, data=sdf[which(sdf$cursor == FALSE & sdf$strategy == 'none'),], FUN=mean, na.rm=TRUE)
     
@@ -2993,8 +3415,8 @@ let3_Awareness_TwoRate <- function(target='inline') {
         average <- c(average, mean(reachdevs, na.rm=TRUE))
       }
       
-      polygon(x=c(block, rev(block)),y=c(CI.lo, rev(CI.hi)), col=col.tr, border=NA)
-      lines(block, average, col=col.op)
+      polygon(x=c(block, rev(block)),y=c(CI.lo, rev(CI.hi)), col=t_col(col.op.impl,percent = 80), border=NA)
+      lines(block, average, col=col.op.impl)
       
     }  
     
@@ -3009,9 +3431,17 @@ let3_Awareness_TwoRate <- function(target='inline') {
   
   for (strategy in c(FALSE, TRUE)) {
     
-    if (strategy) {group <- 'aiming'; groupname <- 'aware aimers'} else {group <- 'aims'; groupname <- 'unaware aimers'}
-    col.op <- as.character(groups$col.op[which(groups$group == group)])
-    col.tr <- as.character(groups$col.tr[which(groups$group == group)])
+    if (strategy) {
+      group <- 'aiming'
+      groupname <- 'aware aimers (N=9)'
+      col.op <- as.character(groups$col.op[which(groups$group == 'aiming')])
+      #col.op.impl <- as.character(groups$col.op[which(groups$group == 'aims')])
+    } else {
+      group <- 'aims'
+      groupname <- 'unaware aimers (N=15)'
+      col.op <- '#0047AB'
+      #col.op.impl <- '#00d0d0'
+    }
     
     sdf <- df[,as.character(split_aim$participant[which(split_aim$strategy == strategy)])]
     reaches <- rowMeans(sdf, na.rm = TRUE)
@@ -3039,8 +3469,6 @@ let3_Awareness_TwoRate <- function(target='inline') {
   
   axis(side=2, at=c(0,15,30))
   
-  
-  
   if (target %in% c('svg','pdf')) {
     dev.off()
   }
@@ -3049,39 +3477,42 @@ let3_Awareness_TwoRate <- function(target='inline') {
   
 }
 
-let4_ExtraData <- function(target='inline') {
+let3_ExtraData <- function(target='inline') {
   
   if (target == 'svg') {
-    svglite::svglite(file='doc/letter_Fig3_extradata.svg', width=7, height=7, fix_text_size = FALSE)
+    svglite::svglite(file='doc/letter_Fig3_extradata.svg', width=4, height=8, fix_text_size = FALSE)
   }
   if (target == 'pdf') {
-    cairo_pdf(filename='doc/letter_Fig3_extradata.pdf', width=7, height=7)
+    cairo_pdf(filename='doc/letter_Fig3_extradata.pdf', width=4, height=8)
   }
   
-  textsize <- 1.5
+  textsize <- 0.8
   
   lend <- 1
-  paper.cex <- 0.9
-  group.cex <- 0.65
+  paper.cex <- 0.65
+  group.cex <- 0.5
   
-  #layout(matrix(c(1,2,3,4,5,6), nrow=2, ncol=3, byrow=TRUE))
-  par(mar=c(4.5,0,0,0.1))
+  #layout(matrix(c(1,2,3,1,4,5), nrow=2, ncol=3, byrow=TRUE), width=c(3,2,2))
+  par(mar=c(3,0,0,0.1))
   
-  #  3 or 6 - Modchalingam unpublished
-  #  6      - Neville & Cressman
-  #  2      - Schween et al., X/Y
-  #  4      - Maresch et al 2020
-  #  4      - Modchalingam et al 2019
+  #datasets <- getExtraData()
+  datasets <- getAllExtraData()
+  ndatasets <- length(names(datasets))
+  ngroups   <- 0
+  for (dataset in datasets) {
+    ngroups <- ngroups + length(dataset[['labels']])
+  }
   
-  # 22 total + 5 headers = 27 ?
+  print(ndatasets + ngroups)
   
-  datasets <- getExtraData()
-  row <- 31
+  row <- ndatasets + ngroups + 2
   
   plot(-1000,-1000,
-       main='',xlab='slope',ylab='',
+       main='',xlab='',ylab='',
        xlim=c(-2.9,2.9),ylim=c(-1,row),
        bty='n',ax=F)
+  
+  title(xlab='slope',line=2,cex.lab=textsize)
   
   for (xpos in c(-2.5,2.5)) {
     lines(c(xpos,xpos),c(0.5,row-.5),lty=1,col='#000000')
@@ -3091,10 +3522,10 @@ let4_ExtraData <- function(target='inline') {
   }
   
   
-  axis(side=1, at=c(-2.5,-1.5),labels=c('-1','0'))
-  text(-2.6,row-.5,'strict additivity',srt=90,adj=1)
-  axis(side=1, at=c(1.5,2.5),labels=c('0','1'))
-  text(2.6,row-.5,'loose additivity',srt=90,adj=1)
+  axis(side=1, at=c(-2.5,-1.5),labels=c('-1','0'), cex.axis=textsize)
+  text(-2.65,.5,'strict additivity',srt=90,adj=c(0,0.5), cex=textsize)
+  axis(side=1, at=c(1.5,2.5),labels=c('0','1'), cex.axis=textsize)
+  text(2.65,.5,'loose additivity',srt=90,adj=c(0,0.5), cex=textsize)
   
   # for combined estimates, we need to collect normalized data
   # we will normalize both by the rotation and by average adaptation
@@ -3140,6 +3571,8 @@ let4_ExtraData <- function(target='inline') {
                                     explicit = explicit,
                                     adaptation = adaptation)
       
+      #print(slopes)
+      
       for (assumption in c('strict','loose')) {
         model <- slopes[[assumption]]
         offset <- c('strict'=-1.5, 'loose'=1.5)[assumption]
@@ -3152,7 +3585,8 @@ let4_ExtraData <- function(target='inline') {
       # lines(x=slopes$loose$slope_ci+1.5, y=rep(row,2), lw=6, col=slopes$loose$colors$tr, lend=lend)
       # points(x=slopes$loose$slope+1.5,y=row,pch=1,col=slopes$loose$colors$op)
       
-      if (!(label %in% c('stepwise (30°)','stepwise (45°)','stepwise (60°)'))) {
+      # print(label)
+      if (!(label %in% c('stepwise, 30°','stepwise, 45°','stepwise, 60°'))) {
         adaptation.rotnorm <- c(adaptation.rotnorm, adaptation / gdf$rotation)
         adaptation.avgnorm <- c(adaptation.avgnorm, adaptation / mean(adaptation))
         explicit.rotnorm   <- c(explicit.rotnorm,   explicit   / gdf$rotation)
@@ -3165,12 +3599,14 @@ let4_ExtraData <- function(target='inline') {
     
   }
   
-  # altogether there are 342 participants!
-  row    <- row-1
-  text(0,row,'combined',cex=paper.cex,font=2)
+  totalN <- length(adaptation.rotnorm)
+  print(totalN)
   
   row    <- row-1
-  text(0,row,'rotation-normalized (N=346)',cex=group.cex)
+  text(0,row,sprintf('all data (N=%d)',totalN),cex=paper.cex,font=2)
+  
+  row    <- row-1
+  text(0,row,sprintf('rotation-normalized'),cex=group.cex)
   
   slopes <- getAdditivitySlopes(implicit = implicit.rotnorm,
                                 explicit = explicit.rotnorm,
@@ -3187,7 +3623,7 @@ let4_ExtraData <- function(target='inline') {
   
   row    <- row-1
   
-  text(0,row,'adaptation-normalized (N=346)',cex=group.cex)
+  text(0,row,sprintf('adaptation-normalized'),cex=group.cex)
   slopes <- getAdditivitySlopes(implicit = implicit.avgnorm,
                                 explicit = explicit.avgnorm,
                                 adaptation = adaptation.avgnorm)
@@ -3208,13 +3644,68 @@ let4_ExtraData <- function(target='inline') {
   colors.tr <- unlist(slopes$colors$tr)
   colors.op <- unlist(slopes$colors$op)
   
-  print(colors.tr)
+  #print(colors.tr)
   
   legend(x=-2.4, y=0, 
-         legend=c('additive', 'combine', 'zero-sum', 'subtractive', 'unclear'),
-         col = colors.tr, lwd=c(6,6,6,6,6),
-         bty='n', cex=0.75, ncol=5)
-         
+         legend=c('additive', 'combine', 'zero-slope', 'subtractive', 'unclear'),
+         col = colors.tr, lwd=c(5,5,5,5,5),
+         bty='n', cex=group.cex, ncol=5, seg.len=1)
+  
+  
+  # par(mar=c(3.5,3.5,0.1,0.1))
+  # 
+  # slopes <- getAdditivitySlopes(implicit = implicit.rotnorm,
+  #                               explicit = explicit.rotnorm,
+  #                               adaptation = adaptation.rotnorm)
+  # 
+  # print(range(explicit.rotnorm))
+  # print(range(implicit.rotnorm))
+  # print(range(adaptation.rotnorm))
+  # 
+  # #print(slopes)
+  # 
+  # plot(-1000,-1000,xlim=c(-0.2,1.2),ylim=c(-0.2,1.2),
+  #      main='',xlab='',ylab='',
+  #      bty='n',ax=F,asp=1)
+  # lines(c(0,1),c(1,0),col='#999999')
+  # points(explicit.rotnorm, implicit.rotnorm, col=unlist(slopes$colors$tr)[2],pch=16,cex=0.8)
+  # 
+  # # idx <- which(explicit.rotnorm > 0.1 & explicit.rotnorm < 1 & implicit.rotnorm > 0 & implicit.rotnorm < 1)
+  # # print(idx)
+  # # print(length(idx))
+  # # improt <- implicit.rotnorm
+  # # exprot <- explicit.rotnorm
+  # # rotmodel <- lm(improt ~ exprot)
+  # # library(segmented)
+  # # print(segmented.lm(rotmodel))
+  # 
+  # exp <- seq(0,1,0.01)
+  # 
+  # imp_per <- 0.3333 + (exp * 0.45)
+  # 
+  # imp <- imp_per * (1-exp)
+  # 
+  # lines(exp,imp,col='red')
+  # 
+  # title(main='rotation normalized', line=-2)
+  # axis(side=1, at=c(0,1))
+  # title(xlab='explicit', line=2)
+  # axis(side=2, at=c(0,1))
+  # title(ylab='implicit', line=2)
+  # 
+  # 
+  # 
+  # plot(-1000,-1000,xlim=c(-0.2,1.2),ylim=c(-0.2,1.2),
+  #      main='',xlab='',ylab='',
+  #      bty='n',ax=F,asp=1)
+  # lines(c(0,1),c(1,0),col='#999999')
+  # points(explicit.avgnorm, implicit.avgnorm, col=unlist(slopes$colors$tr)[2],pch=16,cex=0.8)
+  # 
+  # title(main='adaptation normalized', line=-2)
+  # axis(side=1, at=c(0,1))
+  # title(xlab='explicit', line=2)
+  # axis(side=2, at=c(0,1))
+  # title(ylab='implicit', line=2)
   
   if (target %in% c('svg','pdf')) {
     dev.off()
@@ -3222,6 +3713,431 @@ let4_ExtraData <- function(target='inline') {
   
 }
 
+let4_relations <- function(target='inline') {
+  
+  if (target=='svg') {
+    svglite::svglite(file='doc/letter_Fig4_relations.svg', width=8, height=3, fix_text_size = FALSE)
+  }
+  if (target=='pdf') {
+    cairo_pdf(filename='doc/letter_Fig4_relations.pdf', width=8, height=3)
+  }
+  
+  
+  layout(mat=matrix(c(1,2,3),nrow=1,ncol=3))
+  
+  par(mar=c(3.1,3.1,0.1,0.1))
+  
+  df <- bindExtraData()
+  pal <- scales::viridis_pal(alpha=0.4, begin=0, end=1)(256)    # 1) choose colors
+  df$col <- pal[(((df$rotation-min(df$rotation))/diff(range(df$rotation)))*255)+1]              # 2) interpolate numbers
+  
+  norm.var <- unlist(df$adaptation)
+  df$norm.expl <- df$explicit/norm.var
+  df$norm.impl <- df$implicit/norm.var
+  
+  
+  plot(-1000,-1000,xlim=c(-0.2,1.2),ylim=c(-0.2,1.2),
+       main='',xlab='',ylab='',
+       bty='n',ax=F,asp=1)
+  
+  title(xlab='explicit',line=2)
+  title(ylab='implicit',line=2)
+  
+  text(-0.2,1.25,'A: rotation size', font.main=1, cex=1.35*1.5, adj=0)
+  
+  lines(c(0,0,1.1),c(1.1,0,0),col='#999999',lw=1,lty=1)
+  lines(c(-0.1,1.1),c(1.1,-0.1),col='#000000',lw=1,lty=1)
+  points(c(0,1),c(1,0),col='#000000')
+  
+  points(df$norm.expl, df$norm.impl, pch=1, col=df$col, cex=1)
+  
+  X <- seq(-0.1,1.1,0.01)
+  
+  # trendCI <- getTrendCI(x = df$norm.explicit,
+  #                       y = df$norm.implicit,
+  #                       bootstraps = 1000,
+  #                       kernel='normal',
+  #                       bandwidth = 0.25,
+  #                       x.points=X)
+  # 
+  # polygon(x=c(X,rev(X)), y=c(trendCI[1,],rev(trendCI[2,])),col='#FF000027',border=NA)
+  # 
+  # trends <- ksmooth(df$norm.explicit, df$norm.implicit,
+  #                   kernel="normal",
+  #                   bandwidth=0.25,
+  #                   x.points=X)
+  # 
+  # lines(trends$x, trends$y, col='red')
+  
+  for (rotation in c(30,45,60)) {
+    
+    subdf <- df[which(df$rotation == rotation),]
+    col.tr <- subdf$col[1]
+    col.op <- t_col(col.tr, percent = 0)
+    
+    trendCI <- getTrendCI(x = subdf$norm.expl,
+                          y = subdf$norm.impl,
+                          bootstraps = 1000,
+                          kernel='normal',
+                          bandwidth = 0.25,
+                          x.points=X)
+    
+    polygon(x=c(X,rev(X)), y=c(trendCI[1,],rev(trendCI[2,])),col=col.tr,border=NA)
+    
+    trends <- ksmooth(subdf$norm.expl, subdf$norm.impl,
+                      kernel="normal",
+                      bandwidth=0.25,
+                      x.points=X)
+    
+    lines(trends$x, trends$y, col=col.op)
+    
+  }
+  
+  axis(side=1,at=c(0,1))
+  axis(side=2,at=c(0,1))
+  
+  leg <- aggregate(rotation ~ col, data=df, FUN=mean)
+  leg <- leg[order(leg$rotation),]
+  rotcounts <- table(df$rotation)
+  
+  legend(x=0.7,y=1.2,
+         legend=sprintf('%d° (N=%d)',leg$rotation,as.numeric(rotcounts[sprintf('%d',leg$rotation)])),
+         pch=16,col=unlist(lapply(leg$col,FUN=t_col, percent=0)),cex=1.0,bty='n')
+  #title='rotation [°]',
+  
+  print(unlist(lapply(leg$col,FUN=t_col, percent=0)))
+  
+  #col.op <- t_col(col.tr, percent = 0)
+  
+  # # # # # # # # # # # # # # # # #
+  # APPLY MODELS TO 60° DATA ONLY?
+  
+  plot(-1000,-1000,xlim=c(-0.2,1.2),ylim=c(-0.2,1.2),
+       main='',xlab='',ylab='',
+       bty='n',ax=F,asp=1)
+  
+  title(xlab='explicit',line=2)
+  title(ylab='implicit',line=2)
+  
+  text(-0.2,1.25,'B: model (60° only)', font.main=1, cex=1.35*1.5, adj=0)
+  
+  lines(c(0,0,1.1),c(1.1,0,0),col='#999999',lw=1,lty=1)
+  lines(c(-0.1,1.1),c(1.1,-0.1),col='#000000',lw=1,lty=1)
+  points(c(0,1),c(1,0),col='#000000')
+  
+  df60 <- df[which(df$rotation == 60),]
+  
+  points(df60$norm.expl, df60$norm.impl, pch=1, col='#66666660', cex=1)
+  
+  trendCI <- getTrendCI(x = subdf$norm.expl,
+                        y = subdf$norm.impl,
+                        bootstraps = 1000,
+                        kernel='normal',
+                        bandwidth = 0.25,
+                        x.points=X)
+  
+  polygon(x=c(X,rev(X)), y=c(trendCI[1,],rev(trendCI[2,])),col='#66666638',border=NA)
+  
+  
+  compareModels(df60)
+  
+  # first the two LM-based models:
+  a_fit <- fitAdditivity(df60)
+  p_fit <- fitPolynomial(df60) # not plotted!
+  
+  newdata <- data.frame('norm.expl'=seq(-0.1,1.1,0.01))
+  
+  a_pred <- predict.lm(a_fit, newdata=newdata)
+  lines(newdata$norm.expl, a_pred, col='orange', lw=2)
+  
+  #p_pred <- predict.lm(p_fit, newdata=newdata)
+  #lines(newdata$norm.expl, p_pred, col='purple', lw=2)
+  
+  # this is the first one I came up with:
+  l_fit <- fitMaxlimited(df60)
+  newdata$group_adaptation <- mean(df60$group_adaptation)
+  l_pred <- maxLimited(par=l_fit, df=newdata)
+  lines(newdata$norm.expl, l_pred, col='blue', lw=2)
+  
+  # # and a second one:
+  # f_fit <- fitFractionLeft(df60)
+  # f_pred <- fractionLeft(par=f_fit, df=newdata)
+  # lines(newdata$norm.expl, f_pred, col='purple', lw=2)
+  
+  legend(x=0.3, y=1.2,
+         legend=c('regression', '2-limit minimum'),
+         col=c('orange','blue'),
+         cex=1.0,pch=16,bty='n')
+  
+  
+  
+  
+  axis(side=1,at=c(0,1))
+  axis(side=2,at=c(0,1))
+  
+  
+  # # # # # # # # # # # # # #
+  # COMPARE EXPLICIT METHODS
+  
+  
+  plot(-1000,-1000,xlim=c(-0.2,1.2),ylim=c(-0.2,1.2),
+       main='',xlab='',ylab='',
+       bty='n',ax=F,asp=1)
+  
+  title(xlab='explicit',line=2)
+  title(ylab='implicit',line=2)
+  
+  text(-0.2,1.25,'C: explicit measure', font.main=1, cex=1.35*1.5, adj=0)
+  
+  lines(c(0,0,1.1),c(1.1,0,0),col='#999999',lw=1,lty=1)
+  lines(c(-0.1,1.1),c(1.1,-0.1),col='#000000',lw=1,lty=1)
+  points(c(0,1),c(1,0),col='#000000')
+  
+  
+  methods <- c("aim.reports","PDP.difference")
+  
+  groups <- getGroups()
+  
+  #print(str(df))
+  
+  colors <- c()
+  Ns     <- c()
+  
+  for (methodno in c(1:length(methods))) {
+    
+    subdf <- df[which(df$explicit.method == methods[methodno]),]
+    N <- dim(subdf)[1]
+    Ns <- c(Ns,N)
+    
+    groupname <- c('aims','control')[methodno]
+    col.op <- as.character(groups$col.op[which(groups$group == groupname)])
+    col.tr <- as.character(groups$col.tr[which(groups$group == groupname)])
+    
+    colors <- c(colors, col.op)
+    
+    points(subdf$norm.expl, subdf$norm.impl, pch=1, col=col.tr, cex=1)
+    
+    #print(str(subdf))
+    #print(subdf$norm.expl)
+    
+    trendCI <- getTrendCI(x = subdf$norm.expl,
+                          y = subdf$norm.impl,
+                          bootstraps = 1000,
+                          kernel='normal',
+                          bandwidth = 0.25,
+                          x.points=X)
+    
+    polygon(x=c(X,rev(X)), y=c(trendCI[1,],rev(trendCI[2,])),col=col.tr,border=NA)
+    
+    trends <- ksmooth(subdf$norm.expl, subdf$norm.impl,
+                      kernel="normal",
+                      bandwidth=0.25,
+                      x.points=X)
+    
+    lines(trends$x, trends$y, col=col.op)
+    
+    
+  }
+  
+  legend(x=0.3,y=1.2,
+         legend=sprintf('%s (N=%d)',c('aiming / reports', 'PDP difference'),Ns),
+         pch=16,col=colors,cex=1.0,bty='n')
+  
+  
+  axis(side=1,at=c(0,1))
+  axis(side=2,at=c(0,1))
+  
+  
+  if (target %in% c('svg','pdf')) {
+    dev.off()
+  }
+  
+}
+
+extraDataScatters <- function(target='inline') {
+  
+  if (target == 'svg') {
+    svglite::svglite(file='doc/extradata_scatters.svg', width=5, height=7, fix_text_size = FALSE)
+  }
+  if (target == 'pdf') {
+    cairo_pdf(filename='doc/extradata_scatters.pdf', width=5, height=7)
+  }
+  
+  textsize <- 1.5
+  
+  lend <- 1
+  paper.cex <- 0.9
+  group.cex <- 0.65
+  
+  layout(matrix(c(1:6), nrow=3, ncol=2, byrow=TRUE))
+  par(mar=c(3.5,2.5,2,0.1))
+  
+  #  3 or 6 - Modchalingam unpublished
+  #  6      - Neville & Cressman
+  #  2      - Schween et al., X/Y
+  #  4      - Maresch et al 2020
+  #  4      - Modchalingam et al 2019
+  
+  # 22 total + 5 headers = 27 ?
+  
+  datasets <- getExtraData()
+  ndatasets <- length(names(datasets))
+  ngroups   <- 0
+  for (dataset in datasets) {
+    ngroups <- ngroups + length(dataset[['labels']])
+  }
+  
+  print(ndatasets + ngroups)
+  
+  row <- ndatasets + ngroups + 4
+  
+
+  # for combined estimates, we need to collect normalized data
+  # we will normalize both by the rotation and by average adaptation
+  adaptation.rotnorm <- c()
+  adaptation.avgnorm <- c()
+  explicit.rotnorm   <- c()
+  explicit.avgnorm   <- c()
+  implicit.rotnorm   <- c()
+  implicit.avgnorm   <- c()
+  
+  for (dataset in datasets) {
+    
+    paper  <- dataset[['paper']]
+    df     <- dataset[['data']]
+    labels <- dataset[['labels']]
+    
+    if (!('implicit' %in% names(df))) {
+      df$implicit <- df$exclude
+    }
+    
+    row    <- row-1
+    #text(0,row,paper,cex=paper.cex,font=2)
+    
+    groups <- unique(df$group)
+    
+    lim <- range(c(df$adaptation, df$implicit, df$explicit))
+    
+    for (group in groups) {
+      
+      row <- row-1
+      label <- labels[group]
+      #text(0,row,label,cex=group.cex)
+      
+      # select data for the group:
+      gdf <- df[which(df$group == group),]
+      
+      #cat(sprintf('%s N=%d\n',label,dim(gdf)[1]))
+      
+      # extract relevant columns:
+      implicit   <- gdf$implicit
+      explicit   <- gdf$explicit
+      adaptation <- gdf$adaptation
+      
+      # slopes <- getAdditivitySlopes(implicit = implicit,
+      #                               explicit = explicit,
+      #                               adaptation = adaptation)
+      
+      # print(slopes)
+      
+      # for (assumption in c('strict','loose')) {
+      #   model <- slopes[[assumption]]
+      #   offset <- c('strict'=-1.5, 'loose'=1.5)[assumption]
+      #  # plot the slope and it's confidence interval:
+      #   lines(x=model$slope_ci+offset, y=rep(row,2), lw=6, col=model$colors$tr, lend=lend)
+      #   points(x=model$slope+offset,y=row,pch=1,col=model$colors$op)
+      # }
+      
+      # # plot the slope of the line and it's confidence interval:
+      # lines(x=slopes$loose$slope_ci+1.5, y=rep(row,2), lw=6, col=slopes$loose$colors$tr, lend=lend)
+      # points(x=slopes$loose$slope+1.5,y=row,pch=1,col=slopes$loose$colors$op)
+      plot(-1000,-1000,xlim=lim,ylim=lim)
+      points(explicit, implicit, col='blue')
+      points(explicit, adaptation, col='red')
+      
+      if (!(label %in% c('stepwise (30°)','stepwise (45°)','stepwise (60°)'))) {
+        adaptation.rotnorm <- c(adaptation.rotnorm, adaptation / gdf$rotation)
+        adaptation.avgnorm <- c(adaptation.avgnorm, adaptation / mean(adaptation))
+        explicit.rotnorm   <- c(explicit.rotnorm,   explicit   / gdf$rotation)
+        explicit.avgnorm   <- c(explicit.avgnorm,   explicit   / mean(adaptation))
+        implicit.rotnorm   <- c(implicit.rotnorm,   implicit   / gdf$rotation)
+        implicit.avgnorm   <- c(implicit.avgnorm,   implicit   / mean(adaptation))
+      }
+      
+    }
+    
+  }
+  
+  totalN <- length(adaptation.rotnorm)
+  
+  # row    <- row-1
+  # text(0,row,sprintf('all data (N=%d)',totalN),cex=paper.cex,font=2)
+  # 
+  # row    <- row-1
+  # text(0,row,sprintf('rotation-normalized'),cex=group.cex)
+  # 
+  # slopes <- getAdditivitySlopes(implicit = implicit.rotnorm,
+  #                               explicit = explicit.rotnorm,
+  #                               adaptation = adaptation.rotnorm)
+  # 
+  # # plot the slope and it's confidence interval:
+  # lines(x=slopes$strict$slope_ci-1.5, y=rep(row,2), lw=6, col=slopes$strict$colors$tr, lend=lend)
+  # points(x=slopes$strict$slope-1.5,y=row,pch=1,col=slopes$strict$colors$op)
+  # 
+  # # plot the slope of the line and it's confidence interval:
+  # lines(x=slopes$loose$slope_ci+1.5, y=rep(row,2), lw=6, col=slopes$loose$colors$tr, lend=lend)
+  # points(x=slopes$loose$slope+1.5,y=row,pch=1,col=slopes$loose$colors$op)
+  # 
+  # 
+  # row    <- row-1
+  # 
+  # text(0,row,sprintf('adaptation-normalized'),cex=group.cex)
+  # slopes <- getAdditivitySlopes(implicit = implicit.avgnorm,
+  #                               explicit = explicit.avgnorm,
+  #                               adaptation = adaptation.avgnorm)
+  
+  # # plot the slope and it's confidence interval:
+  # lines(x=slopes$strict$slope_ci-1.5, y=rep(row,2), lw=6, col=slopes$strict$colors$tr, lend=lend)
+  # points(x=slopes$strict$slope-1.5,y=row,pch=1,col=slopes$strict$colors$op)
+  # 
+  # # plot the slope of the line and it's confidence interval:
+  # lines(x=slopes$loose$slope_ci+1.5, y=rep(row,2), lw=6, col=slopes$loose$colors$tr, lend=lend)
+  # points(x=slopes$loose$slope+1.5,y=row,pch=1,col=slopes$loose$colors$op)
+  # 
+  #legend(-2.5, y=0, 
+  #       legend=c('supports additivity', 'supports combining', 'supports zero-sum', 'supports subtractivity', 'unclear'),
+  #       col = slopes$colors.tr, lwd=c(6,6,6,6,6),
+  #       bty='n', cex=0.9, ncol=5)
+  
+  # colors.tr <- unlist(slopes$colors$tr)
+  # colors.op <- unlist(slopes$colors$op)
+  # 
+  # print(colors.tr)
+  
+  # legend(x=-2.4, y=0, 
+  #        legend=c('additive', 'combine', 'zero-sum', 'subtractive', 'unclear'),
+  #        col = colors.tr, lwd=c(6,6,6,6,6),
+  #        bty='n', cex=0.75, ncol=5)
+  
+  lim <- range(c(explicit.avgnorm, implicit.avgnorm, adaptation.avgnorm))
+  
+  plot(-1000,-1000,xlim=lim,ylim=lim, asp=1)
+  points(explicit.avgnorm, implicit.avgnorm, col='blue')
+  points(explicit.avgnorm, adaptation.avgnorm, col='red')
+  lines(c(0,1),c(1,0),lty=2,col='green')
+
+  lim <- range(c(explicit.rotnorm, implicit.rotnorm, adaptation.rotnorm))
+  
+  plot(-1000,-1000,xlim=lim,ylim=lim, asp=1)
+  points(explicit.rotnorm, implicit.rotnorm, col='blue')
+  points(explicit.rotnorm, adaptation.rotnorm, col='red')
+  lines(c(0,1),c(1,0),lty=2,col='green')
+  
+  if (target %in% c('svg','pdf')) {
+    dev.off()
+  }
+  
+}
 
 testColors <- function() {
   
@@ -3244,3 +4160,7 @@ testColors <- function() {
   }
   
 }
+
+
+
+
