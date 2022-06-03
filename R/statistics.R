@@ -633,3 +633,259 @@ parameterRecovery <- function(N=1000) {
   write.csv('data/tworate_parameter_recovery.csv', quote=F, row.names=F)
   
 }
+
+# linear model data recovery -----
+
+testLinearModel <- function() {
+  
+  N <- 10
+  
+  adaptation <- 30 + rnorm(N, sd=5)
+  
+  explicit <- 5 + (runif(N) * 10)
+  
+  implicit <- adaptation - explicit
+  
+  plot(explicit, implicit, xlim=c(0,30),ylim=c(0,35))
+  lines(c(0,30),c(30,0),col='red')
+  
+  print(summary(lm(implicit ~ explicit)))
+  
+}
+
+
+runOneAdditiveSimulation <- function(freepar, fixpar) {
+  
+  par       <- c(freepar, fixpar)
+  
+  N         <- par['N']
+  avg.adapt <- par['avg.adapt'] 
+  sd.adapt  <- par['sd.adapt']
+  avg.expl  <- par['avg.expl'] 
+  sd.expl   <- par['sd.expl']
+  sd.impl   <- par['sd.impl']
+  
+  adaptation <- avg.adapt + rnorm(N, sd=sd.adapt)
+  
+  explicit   <- avg.expl  + rnorm(N, sd=sd.expl)
+  
+  implicit <- adaptation - explicit + rnorm(N, sd=sd.impl)
+  
+  lin.mod <- lm(implicit ~ explicit)
+  
+  intercept_ci <- confint(lin.mod, parm='(Intercept)', level=0.95)
+  slope_ci     <- confint(lin.mod, parm='explicit',    level=0.95)
+  
+  row.names(intercept_ci) <- c()
+  row.names(slope_ci) <- c()
+  
+  ols_coef <- as.numeric(lin.mod$coef)
+  
+  odr_beta <- ODR_slope(X=explicit, y=implicit)
+  
+  return(list('intercept_ols'    = ols_coef[1],
+              'slope_ols'        = ols_coef[2],
+              'slope_odr'        = odr_beta,
+              'intercept_ci'     = intercept_ci,
+              'slope_ci'         = slope_ci))
+  
+}
+
+
+simulateAdditivityConditions <- function(resamples = 1000) {
+  
+  N            <- c()
+  sd.adapt     <- c()
+  sd.expl      <- c()
+  
+  intercept_ols.lo <- c()
+  intercept_ols.up <- c()
+  
+  slope_ols.lo     <- c()
+  slope_ols.up     <- c()
+
+  slope_odr.lo     <- c()
+  slope_odr.up     <- c()
+  
+  sims.done    <- 0
+  
+  for (this.N in c(10,15,20,25,30,35)) {
+    
+    for (this.sd.adapt in c(1:10)) {
+      
+      for (this.sd.expl in c(1:10)) {
+        
+        slopes_ols     <- matrix(NA, nrow=1 , ncol=resamples)
+        intercepts_ols <- matrix(NA, nrow=1 , ncol=resamples)
+        slopes_odr     <- matrix(NA, nrow=1 , ncol=resamples)
+        
+        for (bs in c(1:resamples)) {
+          
+          fixpar <- c('N'=this.N,
+                      'avg.adapt'=30,
+                      'sd.adapt'=this.sd.adapt,
+                      'avg.expl'=15,
+                      'sd.expl'=this.sd.expl,
+                      'sd.impl'=5)
+          
+          output <- runOneAdditiveSimulation(freepar = c(), 
+                                             fixpar  = fixpar)
+          
+          slopes_ols[1,bs]     <- output$slope_ols
+          intercepts_ols[1,bs] <- output$intercept_ols
+          slopes_odr[1,bs]     <- output$slope_odr
+          
+        }
+        
+        slope_ols.ci     <- quantile(slopes_ols,probs=c(0.025,0.975))
+        intercept_ols.ci <- quantile(intercepts_ols,probs=c(0.025,0.975))
+        slope_odr.ci     <- quantile(slopes_odr,probs=c(0.025,0.975))
+        
+        N                <- c(N, this.N)
+        sd.adapt         <- c(sd.adapt, this.sd.adapt)
+        sd.expl          <- c(sd.expl,  this.sd.expl)
+        slope_ols.lo     <- c(slope_ols.lo, slope_ols.ci[1])
+        slope_ols.up     <- c(slope_ols.up, slope_ols.ci[2])
+        intercept_ols.lo <- c(intercept_ols.lo, intercept_ols.ci[1])
+        intercept_ols.up <- c(intercept_ols.up, intercept_ols.ci[2])
+        slope_odr.lo     <- c(slope_odr.lo, slope_odr.ci[1])
+        slope_odr.up     <- c(slope_odr.up, slope_odr.ci[2])
+        
+        sims.done <- sims.done + 1
+        cat(sprintf('simulation %d / 600\n',sims.done))
+        
+      }
+      
+    }
+    
+  }
+  
+  df <- data.frame(N,
+                   sd.adapt,
+                   sd.expl,
+                   slope_ols.lo,
+                   slope_ols.up,
+                   intercept_ols.lo,
+                   intercept_ols.up,
+                   slope_odr.lo,
+                   slope_odr.up)
+  
+  return(df)
+  
+}
+
+plotAdditivitySimulations <- function() {
+  
+  if (file.exists('data/strict_simulation.csv')) {
+    df <- read.csv('data/strict_simulation.csv', stringsAsFactors = FALSE)
+  } else {
+    df <- simulateAdditivityConditions()
+    write.csv(df,file='data/strict_simulation.csv', row.names = FALSE, quote=FALSE)
+  }
+  
+  for (depvar in c('slope.up','intercept.up'))
+  
+  layout(mat=matrix(c(1:4), nrow = 2, ncol=2, byrow = TRUE))
+  
+  depvars <- c('slope_odr.up','slope_odr.lo','slope_ols.up','slope_ols.lo')
+  
+  expectedvalues <- c(-1,-1,-1,-1)
+  
+  for (depvarno in c(1,2,3,4)) {
+    
+    data <- df[,depvars[depvarno]]
+    
+    ylim <- range(data)
+    ylim[1] <- min(ylim[1],-1)
+    ylim[2] <- max(ylim[2],1)
+    
+    plot(data,main=depvars[depvarno],ylim=ylim)
+    lines(c(1,600),rep(expectedvalues[depvarno],2),col='red')
+    
+  }
+  
+}
+
+
+# ODR -----
+
+# based on: https://stats.stackexchange.com/questions/13152/how-to-perform-orthogonal-regression-total-least-squares-via-pca
+
+# there is a closed solution apparently, but it's not different from the one used below
+# which *should* also have one solution only, and is faster to write
+
+ODR_slope <- function(X,y=NULL,bootstraps=NA) {
+
+  if (is.na(bootstraps)) {
+
+    if (is.null(y) & (length(dim(X)) > 1)) {
+      y <- X[,dim(X)[2]]
+      X <- X[,c(1:(dim(X)[2]-1))]
+    } else if(is.null(y)) {
+      cat('provide a y variable\n')
+    }
+
+    v <- prcomp(cbind(X,y))$rotation
+    beta <- -v[-ncol(v),ncol(v)] / v[ncol(v),ncol(v)]
+    return(beta)
+
+  } else {
+    resamples <- sample(c(1:length(y)),
+                        size=(length(y)*bootstraps),
+                        replace = TRUE)
+    if (is.null(dim(X))) {
+      strict_data <- array(NA, dim=c(bootstraps,length(y),2))
+      strict_data[,,2] <- y[resamples]
+      strict_data[,,1] <- X[resamples]
+    } else {
+      print(dim(X))
+      strict_data <- array(NA, dim=c(bootstraps,length(y),dim(X)[2]+1))
+      print(dim(strict_data))
+      strict_data[,,(dim(X)[2]+1)] <- y[resamples]
+      strict_data[,,c(1:(dim(X)[2]))] <- X[,resamples]
+    }
+
+    return( quantile( unlist(apply(strict_data, MARGIN=c(1), FUN=ODR_slope)), probs=c(0.025,0.975) ) )
+  }
+
+}
+
+# XY trend/ksmooth -----
+
+getTrendCI <- function(x, y, bootstraps = 1000, kernel, bandwidth, x.points) {
+  
+  idx <- sample(c(1:length(x)),size=length(x)*bootstraps,replace=TRUE)
+  #Xmat <- matrix( data = x[idx], nrow = bootstraps, ncol=length(x) )
+  #Ymat <- matrix( data = y[idx], nrow = bootstraps, ncol=length(y) )
+  
+  mat <- array(data=NA, dim=c(bootstraps,length(x),2))
+  mat[,,1] <- x[idx]
+  mat[,,2] <- y[idx]
+  
+  op <- rbind( apply(mat,
+                     MARGIN=c(1),
+                     FUN=getKsmoothY,
+                     kernel=kernel,
+                     bandwidth=bandwidth,
+                     x.points=x.points) )
+  
+  CI <- apply(op,
+              MARGIN=c(1),
+              quantile,
+              probs=c(0.025,0.975))
+  
+  return(CI)
+  
+}
+
+getKsmoothY <- function(m,kernel,bandwidth,x.points) {
+  
+  ks <- ksmooth(x=m[,1],y=m[,2],
+                kernel=kernel,
+                bandwidth=bandwidth,
+                x.points=x.points)
+  
+  return(ks$y)
+  
+}
+
