@@ -27,7 +27,7 @@ All the raw data for this project is available from OSF. We can use a `Reach` fu
 
 ```{r}
 datalist <- list()
-datalist[['\\']] <- c('aiming.zip', 'control.zip', 'instructed.zip', 'demographics.csv', 'modchalingam.zip')
+datalist[['\\']] <- c('aiming.zip', 'control.zip', 'instructed.zip', 'demographics.csv', 'external_data.csv')
 Reach::downloadOSFdata(repository='kr5eh',
                        filelist=datalist,
                        folder='data',
