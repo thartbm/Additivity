@@ -3740,8 +3740,8 @@ let4_relations <- function(target='inline') {
        main='',xlab='',ylab='',
        bty='n',ax=F,asp=1)
   
-  title(xlab='explicit',line=2)
-  title(ylab='implicit',line=2)
+  title(xlab='explicit/adaptation',line=2)
+  title(ylab='implicit/adaptation',line=2)
   
   text(-0.2,1.25,'A: rotation size', font.main=1, cex=1.35*1.5, adj=0)
   
@@ -3816,8 +3816,8 @@ let4_relations <- function(target='inline') {
        main='',xlab='',ylab='',
        bty='n',ax=F,asp=1)
   
-  title(xlab='explicit',line=2)
-  title(ylab='implicit',line=2)
+  title(xlab='explicit/adaptation',line=2)
+  title(ylab='implicit/adaptation',line=2)
   
   text(-0.2,1.25,'B: model (60° only)', font.main=1, cex=1.35*1.5, adj=0)
   
@@ -3865,7 +3865,7 @@ let4_relations <- function(target='inline') {
   # lines(newdata$norm.expl, f_pred, col='purple', lw=2)
   
   legend(x=0.3, y=1.2,
-         legend=c('regression', '2-limit minimum'),
+         legend=c('regression', 'capped fraction model'),
          col=c('orange','blue'),
          cex=1.0,pch=16,bty='n')
   
@@ -3884,8 +3884,8 @@ let4_relations <- function(target='inline') {
        main='',xlab='',ylab='',
        bty='n',ax=F,asp=1)
   
-  title(xlab='explicit',line=2)
-  title(ylab='implicit',line=2)
+  title(xlab='explicit/adaptation',line=2)
+  title(ylab='implicit/adaptation',line=2)
   
   text(-0.2,1.25,'C: explicit measure', font.main=1, cex=1.35*1.5, adj=0)
   
