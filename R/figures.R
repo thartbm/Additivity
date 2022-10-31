@@ -3713,7 +3713,7 @@ let3_ExtraData <- function(target='inline') {
   
 }
 
-let4_relations <- function(target='inline') {
+let4_Relations <- function(target='inline') {
   
   if (target=='svg') {
     svglite::svglite(file='doc/letter_Fig4_relations.svg', width=8, height=3, fix_text_size = FALSE)
@@ -3791,7 +3791,28 @@ let4_relations <- function(target='inline') {
     
     lines(trends$x, trends$y, col=col.op)
     
+    if (rotation == 60) {
+      col60.op <- col.op
+      col60.tr <- col.tr
+    }
+    
   }
+  
+  # add 2 models for 60 degree data:
+  df60 <- df[which(df$rotation == 60),]
+  
+  # linear model for 60 degree data:
+  a_fit <- fitAdditivity(df60)
+  newdata <- data.frame('norm.expl'=seq(-0.1,1.1,0.01))
+  a_pred <- predict.lm(a_fit, newdata=newdata)
+  lines(newdata$norm.expl, a_pred, col='blue', lw=1, lty=3)
+  
+  # capped proportional model
+  l_fit <- fitMaxlimited(df60)
+  newdata$group_adaptation <- mean(df60$group_adaptation)
+  l_pred <- maxLimited(par=l_fit, df=newdata)
+  lines(newdata$norm.expl, l_pred, col='blue', lw=1, lty=2)
+  
   
   axis(side=1,at=c(0,1))
   axis(side=2,at=c(0,1))
@@ -3805,6 +3826,12 @@ let4_relations <- function(target='inline') {
          pch=16,col=unlist(lapply(leg$col,FUN=t_col, percent=0)),cex=1.0,bty='n')
   #title='rotation [°]',
   
+  legend(x=0.02, y=0.25,
+        legend=c('regression', 'capped fraction'),
+        col=c('blue','blue'),lty=c(3,2),
+        cex=1.0,bty='n')
+  
+  
   print(unlist(lapply(leg$col,FUN=t_col, percent=0)))
   
   #col.op <- t_col(col.tr, percent = 0)
@@ -3812,68 +3839,222 @@ let4_relations <- function(target='inline') {
   # # # # # # # # # # # # # # # # #
   # APPLY MODELS TO 60° DATA ONLY?
   
-  plot(-1000,-1000,xlim=c(-0.2,1.2),ylim=c(-0.2,1.2),
+  # plot(-1000,-1000,xlim=c(-0.2,1.2),ylim=c(-0.2,1.2),
+  #      main='',xlab='',ylab='',
+  #      bty='n',ax=F,asp=1)
+  # 
+  # title(xlab='explicit/adaptation',line=2)
+  # title(ylab='implicit/adaptation',line=2)
+  # 
+  # text(-0.2,1.25,'B: model (60° only)', font.main=1, cex=1.35*1.5, adj=0)
+  # 
+  # lines(c(0,0,1.1),c(1.1,0,0),col='#999999',lw=1,lty=1)
+  # lines(c(-0.1,1.1),c(1.1,-0.1),col='#000000',lw=1,lty=1)
+  # points(c(0,1),c(1,0),col='#000000')
+  # 
+  # df60 <- df[which(df$rotation == 60),]
+  # 
+  # points(df60$norm.expl, df60$norm.impl, pch=1, col='#66666660', cex=1)
+  # 
+  # trendCI <- getTrendCI(x = subdf$norm.expl,
+  #                       y = subdf$norm.impl,
+  #                       bootstraps = 1000,
+  #                       kernel='normal',
+  #                       bandwidth = 0.25,
+  #                       x.points=X)
+  # 
+  # polygon(x=c(X,rev(X)), y=c(trendCI[1,],rev(trendCI[2,])),col='#66666638',border=NA)
+  # 
+  # 
+  # compareModels(df60)
+  # 
+  # # first the two LM-based models:
+  # a_fit <- fitAdditivity(df60)
+  # p_fit <- fitPolynomial(df60) # not plotted!
+  # 
+  # newdata <- data.frame('norm.expl'=seq(-0.1,1.1,0.01))
+  # 
+  # a_pred <- predict.lm(a_fit, newdata=newdata)
+  # lines(newdata$norm.expl, a_pred, col='orange', lw=2)
+  # 
+  # #p_pred <- predict.lm(p_fit, newdata=newdata)
+  # #lines(newdata$norm.expl, p_pred, col='purple', lw=2)
+  # 
+  # # this is the first one I came up with:
+  # l_fit <- fitMaxlimited(df60)
+  # newdata$group_adaptation <- mean(df60$group_adaptation)
+  # l_pred <- maxLimited(par=l_fit, df=newdata)
+  # lines(newdata$norm.expl, l_pred, col='blue', lw=2)
+  # 
+  # # # and a second one:
+  # # f_fit <- fitFractionLeft(df60)
+  # # f_pred <- fractionLeft(par=f_fit, df=newdata)
+  # # lines(newdata$norm.expl, f_pred, col='purple', lw=2)
+  # 
+  # legend(x=0.3, y=1.2,
+  #        legend=c('regression', 'capped fraction model'),
+  #        col=c('orange','blue'),
+  #        cex=1.0,pch=16,bty='n')
+  # 
+  # 
+  # 
+  # 
+  # axis(side=1,at=c(0,1))
+  # axis(side=2,at=c(0,1))
+  # 
+  
+  
+  # # # # # # # # # # # # # # # #
+  # MAXIMUM LIKELIHOOD ESTIMATES
+  
+  groups <- getGroups()
+  
+  cols.op <- c()
+  
+  plot(-1000,-1000,xlim=c(-0.4,2.4),ylim=c(-0.4,2.4),
        main='',xlab='',ylab='',
        bty='n',ax=F,asp=1)
   
-  title(xlab='explicit/adaptation',line=2)
-  title(ylab='implicit/adaptation',line=2)
+  title(xlab='predicted adaptation/rotation',line=2)
+  title(ylab='measured adaptation/rotation',line=2)
   
-  text(-0.2,1.25,'B: model (60° only)', font.main=1, cex=1.35*1.5, adj=0)
+  text(-0.4,2.5,'B: max. likelihood', font.main=1, cex=1.35*1.5, adj=0)
+  lines(c(0,2),c(0,2),col='#999999',lw=1,lty=1)
   
-  lines(c(0,0,1.1),c(1.1,0,0),col='#999999',lw=1,lty=1)
-  lines(c(-0.1,1.1),c(1.1,-0.1),col='#000000',lw=1,lty=1)
-  points(c(0,1),c(1,0),col='#000000')
+  MLdf <- MLE_adaptation()
   
-  df60 <- df[which(df$rotation == 60),]
+  # additive model:
+  a_hat <- MLdf$explicit + MLdf$implicit
   
-  points(df60$norm.expl, df60$norm.impl, pch=1, col='#66666660', cex=1)
+  # par <- c('offset'=0)
+  mdf <- data.frame( 'a_hat'      = a_hat,
+                     'adaptation' = MLdf$adaptation,
+                     'rotation'   = MLdf$rotation)
   
-  trendCI <- getTrendCI(x = subdf$norm.expl,
-                        y = subdf$norm.impl,
-                        bootstraps = 1000,
-                        kernel='normal',
-                        bandwidth = 0.25,
-                        x.points=X)
-  
-  polygon(x=c(X,rev(X)), y=c(trendCI[1,],rev(trendCI[2,])),col='#66666638',border=NA)
-  
-  
-  compareModels(df60)
-  
-  # first the two LM-based models:
-  a_fit <- fitAdditivity(df60)
-  p_fit <- fitPolynomial(df60) # not plotted!
-  
-  newdata <- data.frame('norm.expl'=seq(-0.1,1.1,0.01))
-  
-  a_pred <- predict.lm(a_fit, newdata=newdata)
-  lines(newdata$norm.expl, a_pred, col='orange', lw=2)
-  
-  #p_pred <- predict.lm(p_fit, newdata=newdata)
-  #lines(newdata$norm.expl, p_pred, col='purple', lw=2)
-  
-  # this is the first one I came up with:
-  l_fit <- fitMaxlimited(df60)
-  newdata$group_adaptation <- mean(df60$group_adaptation)
-  l_pred <- maxLimited(par=l_fit, df=newdata)
-  lines(newdata$norm.expl, l_pred, col='blue', lw=2)
-  
-  # # and a second one:
-  # f_fit <- fitFractionLeft(df60)
-  # f_pred <- fractionLeft(par=f_fit, df=newdata)
-  # lines(newdata$norm.expl, f_pred, col='purple', lw=2)
-  
-  legend(x=0.3, y=1.2,
-         legend=c('regression', 'capped fraction model'),
-         col=c('orange','blue'),
-         cex=1.0,pch=16,bty='n')
+  # find best offset:
+  # offset_fit <- optimx::optimx( par = par,
+  #                               fn = a_hat_offset, 
+  #                               lower = c(-100),
+  #                               upper = c( 100),
+  #                               method = 'L-BFGS-B',
+  #                               df = mdf )
+  # 
+  # add_offset_MSE <- offset_fit$value[1]
+  # print(add_offset_MSE)
+  # 
+  # print(offset_fit)
   
   
+  # groupname <- 'aiming'
+  # col.op <- as.character(groups$col.op[which(groups$group == groupname)])
+  # col.tr <- as.character(groups$col.tr[which(groups$group == groupname)])
+  solidcolors =  c(rgb(229, 22,  54,  255, max = 255), 
+                   rgb(136, 153, 255, 255, max = 255))
+  transcolors =  c(rgb(229, 22,  54,  47,  max = 255), 
+                   rgb(136, 153, 255, 47,  max = 255))
+  col.op <- solidcolors[1]
+  col.tr <- transcolors[1]
+  cols.op <- c(cols.op, col.op)
+  
+  # predictions <- (a_hat+offset_fit$offset[1])/MLdf$rotation
+  predictions <- a_hat/MLdf$rotation
+  adapt <- MLdf$adaptation/MLdf$rotation
+  points(predictions, adapt, col=col.tr)
   
   
-  axis(side=1,at=c(0,1))
-  axis(side=2,at=c(0,1))
+  at <- range(predictions)
+  add.p2a <- lm(adapt ~ predictions)
+  pcoef <- add.p2a$coefficients
+  lines(at, pcoef[1]+(at*pcoef[2]), col=col.op)
+  
+  predict.points <- seq(at[1],at[2],length.out=40)
+  
+  ci <- predict( add.p2a,
+                 newdata=data.frame(predictions=predict.points),
+                 interval = "confidence")
+  
+  X <- c(predict.points,rev(predict.points))
+  Y <- c(ci[,'lwr'],rev(ci[,'upr']))
+  polygon(x=X,y=Y,col=col.tr,border=NA)
+  
+  # print(summary(add.p2a))
+  print(pcoef)
+  print(confint(add.p2a,'predictions',level=0.95))
+  
+  # maximum likelihood model
+  # a_hat <- MLdf$a_hat
+  a_hat <- (2 * MLdf$w_explicit) + (2 * MLdf$w_implicit)
+  
+  # par <- c('offset'=0)
+  mdf <- data.frame( 'a_hat'      = a_hat,
+                     'adaptation' = MLdf$adaptation,
+                     'rotation'   = MLdf$rotation)
+  
+  # offset_fit <- optimx::optimx( par = par,
+  #                               fn = a_hat_offset, 
+  #                               lower = c(-100),
+  #                               upper = c( 100),
+  #                               method = 'L-BFGS-B',
+  #                               df = mdf )
+  # 
+  # MLE_offset_MSE <- offset_fit$value[1]
+  # print(MLE_offset_MSE)
+  
+  # groupname <- 'instructed'
+  # col.op <- as.character(groups$col.op[which(groups$group == groupname)])
+  # col.tr <- as.character(groups$col.tr[which(groups$group == groupname)])
+  col.op <- solidcolors[2]
+  col.tr <- transcolors[2]
+  cols.op <- c(cols.op, col.op)
+  
+  adapt <- MLdf$adaptation/MLdf$rotation
+  predictions <- a_hat/MLdf$rotation
+  points(predictions, adapt, col=col.tr)
+  
+  
+  # MSE <- c('additive'=add_offset_MSE,
+  #          'MLE'=MLE_offset_MSE)
+  # 
+  # AICs <- AICc(MSE = MSE,            # MSE goodness of fit
+  #              k   = c(1,1),         # number of parameters (offset only)
+  #              N   = dim(MLdf)[1])   # N observations (127 participants)
+  # 
+  # print(relativeLikelihood(AICs))
+  
+  # # # # #
+  
+  at <- range(predictions)
+  mle.p2a <- lm(adapt ~ predictions)
+  pcoef <- mle.p2a$coefficients
+  lines(at, pcoef[1]+(at*pcoef[2]), col=col.op)
+  
+  predict.points <- seq(at[1],at[2],length.out=40)
+  
+  ci <- predict( mle.p2a,
+                 newdata=data.frame(predictions=predict.points),
+                 interval = "confidence")
+  
+  X <- c(predict.points,rev(predict.points))
+  Y <- c(ci[,'lwr'],rev(ci[,'upr']))
+  polygon(x=X,y=Y,col=col.tr,border=NA)
+  
+  # print(anova(add.p2a, mle.p2a))
+  
+  print(pcoef)
+  print(confint(mle.p2a,'predictions',level=0.95))
+  
+  
+  # # # # # 
+  
+  legend(x=-0.4,y=2.4,
+         legend=c(
+                  expression(paste(hat(A)[k], ' = ', E[k], ' + ', I[k], ' (additive)') ),
+                  expression(paste(hat(A)[k], ' = ', w[ek], E[k], ' + ', w[ik], I[k], ' (MLE)'))
+                  ),
+         col=cols.op,cex=1.0,bty='n',pch=16)
+  
+  axis(side=1,at=c(0,1,2))
+  axis(side=2,at=c(0,1,2))
   
   
   # # # # # # # # # # # # # #
@@ -3896,7 +4077,9 @@ let4_relations <- function(target='inline') {
   
   methods <- c("aim.reports","PDP.difference")
   
-  groups <- getGroups()
+  X <- seq(-0.1,1.1,0.01)
+  
+  #groups <- getGroups()
   
   #print(str(df))
   
