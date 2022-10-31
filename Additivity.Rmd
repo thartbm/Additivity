@@ -1,5 +1,5 @@
 ---
-title: "Aiming Evokes Explicit Motor Adaptation"
+title: "Additivity of Implicit and Explicit Motor Adaptation"
 output:
   html_document:
     df_print: paged
@@ -9,7 +9,21 @@ link-citations: yes
 ---
  
 
-In this document we pre-process and analyze data and make figures for a project where we tested our hypothesis that adding an aiming task to adaptation makes adaptation more explicit. The idea was that asking participants to think really hard on where they would move their hand relative to the target, might cue them in on the fact that aiming your hand somewhere other than the target mighth be the way to optimally do the task. In effect, this would act like instructions such as used in other studies [@Werner2015; @Modchalingam2019]. 
+In this document we pre-process and analyze data and make figures for a project where we tested the presumed additivity of implicit and explicit motor adaptation. First we did an experiment with 3 groups of participants that performed motor adaptation in conditions with the same rotation to adapt to, but designed to evoke different levels of explicit adaptation. Then we collected data from a set of other studies, and tested additivity in that data as well.
+
+In our experiment, the first two groups got either no additional information (control group) or they got an instruction that explained the perturbation and how to counter it, and these participants would only do the rotated phase of the task once they demonstrated they understood how to counter the rotation (instructed group). The third group did not get an instruction, but before every reach training trials they were asked to orient an arrow in the direction they were planning to move their hand in order to get the cursor to the target. The idea was that asking participants to think really hard on where they would move their hand relative to the target, might cue them in on the fact that aiming your hand somewhere other than the target might be the way to optimally do the task. In effect, this would act like instructions such as used in other studies [@Werner2015; @Modchalingam2019], and in the instructed group here.
+
+We test two forms of additivity, first the more common "strict" additivity that assumes total adaptation equals the sum of implicit and explicit adaptation:
+
+$A = I + E$, or as it is usually used:
+
+$I = A - E$, which leads to a relationship between implicit and explicit that should be linear and have a slope of -1.
+
+We also test a less strict form that assumes that within each group, total adaptation can be approximated as a weighted sum of implicit and explicit adaptation.
+
+$\hat{A} = \beta_i \cdot I + \beta_e \cdot E$, and:
+
+$\hat{A} = A$, such that the predicted and actual adaptation should have a linear relationship with a slope of 1. If the confidence intervals for the slope parameters include -1 (strict) or 1 (loose) and exclude 0, this means that the additivity assumption is confirmed.
 
 We install a support package, also used in other projects from our lab:
 
