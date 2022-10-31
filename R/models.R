@@ -342,3 +342,532 @@ fractionLeft <- function(par, df) {
   return(implicit)
   
 }
+
+# maximum likelihood estimate -----
+
+MLE_adaptation <- function() {
+  
+  df <- read.csv('data/external_data.csv', stringsAsFactors = F)
+  
+  df <- df[df$explicit.method=='aim.reports' & !is.na(df$explicit_sd),]
+  
+  df$implicit_sd <- df$implicit_sd + 10^-10
+  df$explicit_sd <- df$explicit_sd + 10^-10
+  
+  w_i <- (1/(df$implicit_sd^2)) / ((1/(df$implicit_sd^2)) + (1/(df$explicit_sd^2)))
+  w_e <- (1/(df$explicit_sd^2)) / ((1/(df$implicit_sd^2)) + (1/(df$explicit_sd^2)))
+  
+  a_hat <- ((w_i * df$implicit) + (w_e * df$explicit))
+  
+  return(data.frame('a_hat'=a_hat,
+                    'adaptation'=df$adaptation,
+                    'explicit'=df$explicit,
+                    'w_explicit'=(w_e * df$explicit),
+                    'implicit'=df$implicit,
+                    'w_implicit'=(w_i * df$implicit),
+                    'participant'=df$participant,
+                    'rotation'=df$rotation,
+                    'group'=df$group,
+                    'grouplabel'=df$grouplabel,
+                    'paper'=df$paper))
+  
+}
+
+fitMLEmodels_old <- function() {
+  
+  layout(mat=matrix(c(1:6),nrow = 2, ncol = 3))
+  
+  df <- MLE_adaptation()
+  
+  
+  # additive model:
+  a_hat <- df$explicit + df$implicit
+  plot(a_hat, df$adaptation, asp=1, main='additive + constant',
+       xlim=c(-15,135),ylim=c(-15,135))
+  lines(c(0,110),c(0,110),col='blue')
+  
+  add_RMSE <- mean(((a_hat/df$rotation) - (df$adaptation/df$rotation))^2)
+  print(add_RMSE)
+  
+  par <- c('offset'=0)
+  mdf <- data.frame( 'a_hat' = a_hat,
+                     'adaptation' = df$adaptation,
+                     'rotation'   = df$rotation)
+  
+  offset_fit <- optimx::optimx( par = par,
+                                fn = a_hat_offset, 
+                                lower = c(-100),
+                                upper = c( 100),
+                                method = 'L-BFGS-B',
+                                df = mdf )
+  
+  #print(offset_fit)
+  
+  add_offset_RMSE <- offset_fit$value[1]
+  print(add_offset_RMSE)
+  
+  # maximum likelihood model
+  a_hat <- df$a_hat
+  plot(a_hat, df$adaptation, asp=1, main='MLE + constant',
+         xlim=c(-15,135),ylim=c(-15,135))
+  lines(c(0,110),c(0,110),col='blue')
+  
+  MLE_RMSE <- mean(((a_hat/df$rotation) - (df$adaptation/df$rotation))^2)
+  print(MLE_RMSE)
+  
+  par <- c('offset'=0)
+  mdf <- data.frame( 'a_hat' = a_hat,
+                     'adaptation' = df$adaptation,
+                     'rotation'   = df$rotation)
+  
+  offset_fit <- optimx::optimx( par = par,
+                                fn = a_hat_offset, 
+                                lower = c(-100),
+                                upper = c( 100),
+                                method = 'L-BFGS-B',
+                                df = mdf )
+  
+  #print(offset_fit)
+  MLE_offset_RMSE <- offset_fit$value[1]
+  print(MLE_offset_RMSE)
+  
+  
+  MSE <- c(#'additive'        = add_RMSE,
+           'additive+offset' = add_offset_RMSE,
+           #'MLE'             = MLE_RMSE,
+           'MLE+offset'      = MLE_offset_RMSE)
+  
+  AICs <- AICc(MSE = MSE, 
+               k   = c(1,1), 
+               N   = 127)
+    
+  print(AICs)
+  print(relativeLikelihood(AICs))
+  
+  
+  # # # # # # # # # # # # # # # # 
+  # now add two overall weights:
+  
+  # for the additive case:
+  mdf <- data.frame('adaptation' = df$adaptation,
+                    'E'          = df$explicit,
+                    'I'          = df$implicit)
+  
+  # print(str(mdf))
+  
+  searchgrid <- expand.grid('w_e'=seq(0.1,1.9,0.1),
+                            'w_i'=seq(0.1,1.9,0.1))
+  
+  searchMSE <- apply(searchgrid,
+                     FUN=two_weights_MSE,
+                     MARGIN=c(1),
+                     df=mdf)
+  
+  # get best points in the grid:
+  topgrid <- searchgrid[order(searchMSE)[c(1:9)],]
+  
+  
+  # do the actual fitting:
+  allFits <- do.call("rbind",
+                     apply( topgrid,
+                            MARGIN=c(1),
+                            FUN=optimx::optimx,
+                            fn=two_weights_MSE,
+                            method='L-BFGS-B',
+                            lower=c(0, 0),
+                            upper=c(2, 2),
+                            df=mdf ) )
+  
+  #print(allFits)
+  
+  # pick the best fit:
+  winFit <- allFits[order(allFits$value)[1],]
+  print(winFit)
+  winpar <- c('w_e'=as.numeric(winFit$w_e[1]),
+              'w_i'=as.numeric(winFit$w_i[1]))
+  
+
+  a_hat <- two_weights_model(par=winpar, df=mdf)
+  
+  plot(a_hat, mdf$adaptation, asp=1, main='additive, 2 weights',
+       xlim=c(-15,135),ylim=c(-15,135))
+  lines(c(0,110),c(0,110),col='blue')
+  
+  # scale by rotation to get comparable MSE:
+  
+  aw_MSE <- mean( ((a_hat/df$rotation)-(mdf$adaptation/df$rotation))^2 ) 
+  
+  MSE <- c(MSE, 'additive weighted'=aw_MSE)
+  
+  # for the maximum likelihood case:
+  # for the additive case:
+  mdf <- data.frame('adaptation' = df$adaptation,
+                    'E'          = df$w_explicit,
+                    'I'          = df$w_implicit)
+  
+  searchgrid <- expand.grid('w_e'=seq(0.1,1.9,0.1),
+                            'w_i'=seq(0.1,1.9,0.1))
+  
+  searchMSE <- apply(searchgrid,
+                     FUN=two_weights_MSE,
+                     MARGIN=c(1),
+                     df=mdf)
+  
+  # get best points in the grid:
+  topgrid <- searchgrid[order(searchMSE)[c(1:9)],]
+  
+  
+  # do the actual fitting:
+  allFits <- do.call("rbind",
+                     apply( topgrid,
+                            MARGIN=c(1),
+                            FUN=optimx::optimx,
+                            fn=two_weights_MSE,
+                            method='L-BFGS-B',
+                            lower=c(0, 0),
+                            upper=c(2, 2),
+                            df=mdf ) )
+  
+  #print(allFits)
+  
+  # pick the best fit:
+  winFit <- allFits[order(allFits$value)[1],]
+  print(winFit)
+  winpar <- c('w_e'=as.numeric(winFit$w_e[1]),
+              'w_i'=as.numeric(winFit$w_i[1]))
+  
+  
+  a_hat <- two_weights_model(par=winpar, df=mdf)
+  
+  plot(a_hat, df$adaptation, asp=1, main='MLE, 2 weights',
+       xlim=c(-15,135),ylim=c(-15,135))
+  lines(c(0,110),c(0,110),col='blue')
+  
+  mw_MSE <- mean( ((a_hat/df$rotation)-(mdf$adaptation/df$rotation))^2 ) 
+  
+  MSE <- c(MSE, 'MLE weighted'=mw_MSE)
+  
+  #print(MSE)
+  
+  AICs <- AICc(MSE = MSE, 
+               k   = c(1,1,2,2), 
+               N   = 127)
+  
+  #print(AICs)
+  print(relativeLikelihood(AICs))
+  
+  # # # # # # # # # # # # # # # # # # # #
+  # scaled rotation plus Imp & Exp ???
+  
+  # for the additive case:
+  mdf <- data.frame('adaptation' = df$adaptation,
+                    'E'          = df$explicit,
+                    'I'          = df$implicit,
+                    'rotation'   = df$rotation)
+  
+  # print(str(mdf))
+  
+  searchgrid <- expand.grid('w_e'=seq(0.1,1.9,0.1),
+                            'w_i'=seq(0.1,1.9,0.1),
+                            'c_r'=seq(0.1,1.9,0.1))
+  
+  searchMSE <- apply(searchgrid,
+                     FUN=scaledrotation_weights_MSE,
+                     MARGIN=c(1),
+                     df=mdf)
+  
+  # get best points in the grid:
+  topgrid <- searchgrid[order(searchMSE)[c(1:9)],]
+  
+  
+  # do the actual fitting:
+  allFits <- do.call("rbind",
+                     apply( topgrid,
+                            MARGIN=c(1),
+                            FUN=optimx::optimx,
+                            fn=scaledrotation_weights_MSE,
+                            method='L-BFGS-B',
+                            lower=c(0, 0, 0),
+                            upper=c(2, 2, 2),
+                            df=mdf ) )
+  
+  #print(allFits)
+  
+  # pick the best fit:
+  winFit <- allFits[order(allFits$value)[1],]
+  print(winFit)
+  winpar <- c('w_e'=as.numeric(winFit$w_e[1]),
+              'w_i'=as.numeric(winFit$w_i[1]),
+              'c_r'=as.numeric(winFit$c_r[1]))
+  
+  
+  a_hat <- scaledrotation_weights_model(par=winpar, df=mdf)
+  
+  plot(a_hat, mdf$adaptation, asp=1, main='additive, 2 weights, scaled rot',
+       xlim=c(-15,135),ylim=c(-15,135))
+  lines(c(0,110),c(0,110),col='blue')
+  
+  # scale by rotation to get comparable MSE:
+  
+  aw_sr_MSE <- mean( ((a_hat/df$rotation)-(mdf$adaptation/df$rotation))^2 ) 
+  
+  MSE <- c(MSE, 'additive weighted, scaled'=aw_sr_MSE)
+  
+  # for the MLE case:
+  
+  mdf <- data.frame('adaptation' = df$adaptation,
+                    'E'          = df$w_explicit,
+                    'I'          = df$w_implicit,
+                    'rotation'   = df$rotation)
+  
+  # print(str(mdf))
+  
+  searchgrid <- expand.grid('w_e'=seq(0.1,1.9,0.1),
+                            'w_i'=seq(0.1,1.9,0.1),
+                            'c_r'=seq(0.1,1.9,0.1))
+  
+  searchMSE <- apply(searchgrid,
+                     FUN=scaledrotation_weights_MSE,
+                     MARGIN=c(1),
+                     df=mdf)
+  
+  # get best points in the grid:
+  topgrid <- searchgrid[order(searchMSE)[c(1:9)],]
+  
+  
+  # do the actual fitting:
+  allFits <- do.call("rbind",
+                     apply( topgrid,
+                            MARGIN=c(1),
+                            FUN=optimx::optimx,
+                            fn=scaledrotation_weights_MSE,
+                            method='L-BFGS-B',
+                            lower=c(0, 0, 0),
+                            upper=c(2, 2, 2),
+                            df=mdf ) )
+  
+  #print(allFits)
+  
+  # pick the best fit:
+  winFit <- allFits[order(allFits$value)[1],]
+  print(winFit)
+  winpar <- c('w_e'=as.numeric(winFit$w_e[1]),
+              'w_i'=as.numeric(winFit$w_i[1]),
+              'c_r'=as.numeric(winFit$c_r[1]))
+  
+  
+  a_hat <- scaledrotation_weights_model(par=winpar, df=mdf)
+  
+  plot(a_hat, mdf$adaptation, asp=1, main='MLE, 2 weights, scaled rot',
+       xlim=c(-15,135),ylim=c(-15,135))
+  lines(c(0,110),c(0,110),col='blue')
+  
+  # scale by rotation to get comparable MSE:
+  
+  mw_sr_MSE <- mean( ((a_hat/df$rotation)-(mdf$adaptation/df$rotation))^2 ) 
+  
+  MSE <- c(MSE, 'MLE weighted, scaled'=mw_sr_MSE)
+  
+  
+  #print(MSE)
+  
+  AICs <- AICc(MSE = MSE, 
+               k   = c(1,1,2,2,3,3), 
+               N   = 127)
+  
+  #print(AICs)
+  print(relativeLikelihood(AICs))
+  
+  
+}
+
+
+fitMLEmodels <- function() {
+  
+  layout(mat=matrix(c(1:4),nrow = 2, ncol = 2, byrow=TRUE))
+  
+  df <- MLE_adaptation()
+  
+  
+  # SCALED ADDITIVE MODEL
+  par <- c('s'=1)
+  mdf <- data.frame( 'E'          = df$explicit,
+                     'I'          = df$implicit,
+                     'adaptation' = df$adaptation,
+                     'rotation'   = df$rotation)
+  
+  
+  a_hat <- scaled_components_model(par=c('s'=1),
+                                   df=mdf) / mdf$rotation
+  adapt <- mdf$adaptation/mdf$rotation
+  add_one_MSE <- mean( (a_hat - adapt)^2 )
+  #add_scaled_MSE <- offset_fit$value[1]
+  print(add_one_MSE)
+  
+  
+  # additive model:
+  plot(a_hat, adapt, asp=1, main='additive scale=1',
+       xlim=c(0,2),ylim=c(0,2))
+  lines(c(0,2),c(0,2),col='blue')
+  
+  
+  
+  offset_fit <- optimx::optimx( par = par,
+                                fn = scaled_components_MSE, 
+                                lower = c(10^-10),
+                                upper = c(3),
+                                method = 'L-BFGS-B',
+                                df = mdf )
+  
+  print(offset_fit)
+  
+  winpar <- c('s' = as.numeric(offset_fit$s[1]))
+  a_hat <- scaled_components_model(par=winpar,
+                                   df=mdf) / mdf$rotation
+  adapt <- mdf$adaptation/mdf$rotation
+  add_scaled_MSE <- mean( (a_hat - adapt)^2 )
+  #add_scaled_MSE <- offset_fit$value[1]
+  print(add_scaled_MSE)
+  
+  
+  # additive model:
+  plot(a_hat, adapt, asp=1, main='additive scale=0.923',
+       xlim=c(0,2),ylim=c(0,2))
+  lines(c(0,2),c(0,2),col='blue')
+
+  
+  
+  # maximum likelihood model
+  # a_hat <- df$a_hat
+  # plot(a_hat, df$adaptation, asp=1, main='MLE + constant',
+  #      xlim=c(-15,135),ylim=c(-15,135))
+  # lines(c(0,110),c(0,110),col='blue')
+  
+  par <- c('s'=2)
+  mdf <- data.frame( 'E'          = df$w_explicit,
+                     'I'          = df$w_implicit,
+                     'adaptation' = df$adaptation,
+                     'rotation'   = df$rotation)
+  
+  a_hat <- scaled_components_model(par=c('s'=2),
+                                   df=mdf) / mdf$rotation
+  adapt <- mdf$adaptation/mdf$rotation
+  MLE_two_MSE <- mean( (a_hat - adapt)^2 )
+  
+  #MLE_scaled_MSE <- offset_fit$value[1]
+  print(MLE_two_MSE)
+  
+  # MLE model:
+  plot(a_hat, adapt, asp=1, main='MLE scale=2',
+       xlim=c(0,2),ylim=c(0,2))
+  lines(c(0,2),c(0,2),col='blue')
+  
+  
+  offset_fit <- optimx::optimx( par = par,
+                                fn = scaled_components_MSE, 
+                                lower = c(10^-10),
+                                upper = c(3),
+                                method = 'L-BFGS-B',
+                                df = mdf )
+  
+  print(offset_fit)
+  
+  winpar <- c('s' = as.numeric(offset_fit$s[1]))
+  a_hat <- scaled_components_model(par=winpar,
+                                   df=mdf) / mdf$rotation
+  adapt <- mdf$adaptation/mdf$rotation
+  MLE_scaled_MSE <- mean( (a_hat - adapt)^2 )
+  
+  #MLE_scaled_MSE <- offset_fit$value[1]
+  print(MLE_scaled_MSE)
+  
+  # MLE model:
+  plot(a_hat, adapt, asp=1, main='MLE scale=1.440',
+       xlim=c(0,2),ylim=c(0,2))
+  lines(c(0,2),c(0,2),col='blue')
+
+    
+  MSE <- c( 
+            'additive one'    = add_one_MSE,
+          #  'additive scaled' = add_scaled_MSE,
+            'MLE two'         = MLE_two_MSE
+          #  'MLE scaled'      = MLE_scaled_MSE
+            )
+  
+  AICs <- AICc(MSE = MSE, 
+           #    k   = c(10^-10,1,10^-10,1), 
+               k   = c(10^-10,10^-10),
+               N   = 127)
+  
+  print(AICs)
+  print(relativeLikelihood(AICs))
+  
+}
+
+
+
+a_hat_offset <- function(par, df) {
+  
+  offset <- par['offset']
+  return( mean( ( ((df$a_hat + offset)/df$rotation) - (df$adaptation/df$rotation) )^2 ) )
+  
+}
+
+two_weights_model <- function(par, df) {
+  
+  # weight parameters:
+  w_e <- par['w_e']
+  w_i <- par['w_i']
+  
+  # return predicted adaptation
+  return( (w_e * df$E) + (w_i * df$I) )
+  
+}
+
+two_weights_MSE <- function(par, df) {
+  
+  a_hat <- two_weights_model(par, df)
+  
+  return( mean( (df$adaptation - a_hat)^2 ) )
+  
+}
+
+scaledrotation_weights_model <- function(par, df) {
+  
+  # weight parameters:
+  w_e <- par['w_e']
+  w_i <- par['w_i']
+  
+  # rotation scale:
+  c_r <- par['c_r']
+
+  # return predicted adaptation
+  return( (c_r * df$rotation) + (w_e * df$E) + (w_i * df$I) )
+  
+}
+
+scaledrotation_weights_MSE <- function(par, df) {
+  
+  a_hat <- scaledrotation_weights_model(par, df)
+  
+  return( mean( (df$adaptation - a_hat)^2 ) )
+  
+}
+
+scaled_components_model <- function(par, df) {
+ 
+  # component scale:
+  s <- par['s']
+  
+  # return predicted adaptation
+  return( (s * df$E) + (s * df$I) )
+  
+}
+
+scaled_components_MSE <- function(par, df) {
+  
+  a_hat <- scaled_components_model(par, df)
+  
+  return( mean( (df$adaptation - a_hat)^2 ) )
+  
+}
