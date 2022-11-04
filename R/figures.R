@@ -1764,13 +1764,13 @@ figB_fastInstructed <- function(target='inline') {
 
 # letter figures -----
 
-let1_Learning_PointEstimates <- function(target='inline') {
+fig2_Learning_PointEstimates <- function(target='inline') {
   
   if (target=='svg') {
-    svglite::svglite(file='doc/letter_Fig1_learning.svg', width=8, height=6, fix_text_size = FALSE)
+    svglite::svglite(file='doc/Fig2_learning.svg', width=8, height=6, fix_text_size = FALSE)
   }
   if (target=='pdf') {
-    cairo_pdf(filename='doc/letter_Fig1_learning.pdf', width=8, height=6)
+    cairo_pdf(filename='doc/Fig2_learning.pdf', width=8, height=6)
   }
   
   textsize <- 1.35
@@ -1862,6 +1862,10 @@ let1_Learning_PointEstimates <- function(target='inline') {
   
   
   par(mar=c(2,0,0,0.1))
+  
+  
+  # # # # # # # # # 
+  
   
   plot(-1000,-1000,main='',xlab='', ylab='', xlim=c(-1,25), ylim=c(-7,40), ax=F, bty='n')
   #title(ylab='reach deviation [°]', line=2.5)
@@ -2070,13 +2074,18 @@ let1_Learning_PointEstimates <- function(target='inline') {
     
     expl <- incl - excl
     
+    # correct for individual variation in total adaptation:
+    err <- mean(adapt) - adapt
+    excl <- excl - err
+    
     at <- range(expl)
     
+    #e2i <- lm(excl ~ e_p_n)
     e2i <- lm(excl ~ expl)
     
     
     cat(sprintf('%s:\n',toupper(groupname)))
-    #print(summary(I2A))
+    #print(summary(e2i))
     
     coef <- e2i$coefficients
     lines(at, coef[1]+(at*coef[2]), col=col.op)
@@ -3185,13 +3194,13 @@ let1_Learning_PointEstimates <- function(target='inline') {
 # }
 
 
-let2_Awareness_TwoRate <- function(target='inline') {
+fig3_Awareness_TwoRate <- function(target='inline') {
   
   if (target=='svg') {
-    svglite::svglite(file='doc/letter_Fig2_tworate.svg', width=8, height=3, fix_text_size = FALSE)
+    svglite::svglite(file='doc/Fig3_tworate.svg', width=8, height=3, fix_text_size = FALSE)
   }
   if (target=='pdf') {
-    cairo_pdf(filename='doc/letter_Fig2_tworate.pdf', width=8, height=3)
+    cairo_pdf(filename='doc/Fig3_tworate.pdf', width=8, height=3)
   }
   
   textsize <- 0.8
@@ -3477,13 +3486,13 @@ let2_Awareness_TwoRate <- function(target='inline') {
   
 }
 
-let3_ExtraData <- function(target='inline') {
+fig4_ExtraData <- function(target='inline') {
   
   if (target == 'svg') {
-    svglite::svglite(file='doc/letter_Fig3_extradata.svg', width=4, height=8, fix_text_size = FALSE)
+    svglite::svglite(file='doc/Fig4_extradata.svg', width=4, height=8, fix_text_size = FALSE)
   }
   if (target == 'pdf') {
-    cairo_pdf(filename='doc/letter_Fig3_extradata.pdf', width=4, height=8)
+    cairo_pdf(filename='doc/Fig4_extradata.pdf', width=4, height=8)
   }
   
   textsize <- 0.8
@@ -3713,13 +3722,13 @@ let3_ExtraData <- function(target='inline') {
   
 }
 
-let4_Relations <- function(target='inline') {
+fig5_Relations <- function(target='inline') {
   
   if (target=='svg') {
-    svglite::svglite(file='doc/letter_Fig4_relations.svg', width=8, height=3, fix_text_size = FALSE)
+    svglite::svglite(file='doc/Fig5_relations.svg', width=8, height=3, fix_text_size = FALSE)
   }
   if (target=='pdf') {
-    cairo_pdf(filename='doc/letter_Fig4_relations.pdf', width=8, height=3)
+    cairo_pdf(filename='doc/Fig5_relations.pdf', width=8, height=3)
   }
   
   
