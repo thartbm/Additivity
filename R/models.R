@@ -871,3 +871,69 @@ scaled_components_MSE <- function(par, df) {
   return( mean( (df$adaptation - a_hat)^2 ) )
   
 }
+
+
+# additivity recovery -----
+
+simulatedAdditivity <- function() {
+  
+  # run this on the aiming group for now:
+  
+  N          <- 24
+  bootstraps <- 5000
+  
+  
+  
+  # implicit <- matrix( rnorm(n    = N*bootstraps,
+  #                           mean = 15,
+  #                           sd   = 5), nrow=bootstraps, ncol=N)
+  explicit <- matrix( rnorm(n    = N*bootstraps,
+                            mean = 15,
+                            sd   = 5), nrow=bootstraps, ncol=N)
+  
+  adaptation_noise <- matrix( rnorm(n    = N*bootstraps,
+                                    mean = 0,
+                                    sd   = 2.5), nrow=bootstraps, ncol=N)
+  implicit_noise <- matrix( rnorm(n    = N*bootstraps,
+                                  mean = 0,
+                                  sd   = 5), nrow=bootstraps, ncol=N)
+  
+  # # ADDITIVITY:
+  # adaptation <- implicit + explicit + adaptation_noise
+  
+  # ADDITIVITY:
+  adaptation <- 30 + adaptation_noise
+  implicit <- adaptation - explicit + implicit_noise
+  
+  
+  # normalize:
+  # implicit <- implicit / adaptation
+  # explicit <- explicit / adaptation
+
+  
+  # set up vectors to collect simulated data:
+  lo <- c()
+  hi <- c()
+  include1 <- c()
+  
+  for (bs in c(1:bootstraps)) {
+    
+    impl <- implicit[bs,]
+    expl <- explicit[bs,]
+    
+    i_lm <- lm(impl ~ expl)
+    CI <- confint(i_lm,parm='expl',level=0.95)
+    
+    lo <- c(lo, CI[1])
+    hi <- c(hi, CI[2])
+    if (CI[1] < -1 & CI[2] > -1) {
+      include1 <- c(include1, TRUE)
+    } else {
+      include1 <- c(include1, FALSE)
+    }
+    
+  }
+  
+  print(mean(include1))
+  
+}
