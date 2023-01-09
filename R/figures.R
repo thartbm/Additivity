@@ -263,7 +263,7 @@ getExtraData <- function() {
   
 }
 
-rbindExtrData <- function() {
+bindExtraData <- function() {
   
   datasets <- getAllExtraData()
   
@@ -273,8 +273,8 @@ rbindExtrData <- function() {
     
     subdf <- dataset[['data']]
     
-    print(dataset[['paper']])
-    print(str(subdf))
+    # print(dataset[['paper']])
+    # print(str(subdf))
     
     subdf <- subdf[,c('group','participant','rotation','adaptation','explicit','implicit')]
     
@@ -1762,7 +1762,7 @@ figB_fastInstructed <- function(target='inline') {
   
 }
 
-# letter figures -----
+# paper figures -----
 
 fig2_Learning_PointEstimates <- function(target='inline') {
   
@@ -3778,6 +3778,7 @@ fig5_Relations <- function(target='inline') {
   # 
   # lines(trends$x, trends$y, col='red')
   
+  # trend lines when N>100
   for (rotation in c(30,45,60)) {
     
     subdf <- df[which(df$rotation == rotation),]
@@ -3807,20 +3808,20 @@ fig5_Relations <- function(target='inline') {
     
   }
   
-  # add 2 models for 60 degree data:
-  df60 <- df[which(df$rotation == 60),]
-  
-  # linear model for 60 degree data:
-  a_fit <- fitAdditivity(df60)
-  newdata <- data.frame('norm.expl'=seq(-0.1,1.1,0.01))
-  a_pred <- predict.lm(a_fit, newdata=newdata)
-  lines(newdata$norm.expl, a_pred, col='blue', lw=1, lty=3)
-  
-  # capped proportional model
-  l_fit <- fitMaxlimited(df60)
-  newdata$group_adaptation <- mean(df60$group_adaptation)
-  l_pred <- maxLimited(par=l_fit, df=newdata)
-  lines(newdata$norm.expl, l_pred, col='blue', lw=1, lty=2)
+  # # add 2 models for 60 degree data:
+  # df60 <- df[which(df$rotation == 60),]
+  # 
+  # # linear model for 60 degree data:
+  # a_fit <- fitAdditivity(df60)
+  # newdata <- data.frame('norm.expl'=seq(-0.1,1.1,0.01))
+  # a_pred <- predict.lm(a_fit, newdata=newdata)
+  # lines(newdata$norm.expl, a_pred, col='blue', lw=1, lty=3)
+  # 
+  # # capped proportional model
+  # l_fit <- fitMaxlimited(df60)
+  # newdata$group_adaptation <- mean(df60$group_adaptation)
+  # l_pred <- maxLimited(par=l_fit, df=newdata)
+  # lines(newdata$norm.expl, l_pred, col='blue', lw=1, lty=2)
   
   
   axis(side=1,at=c(0,1))
@@ -3835,82 +3836,79 @@ fig5_Relations <- function(target='inline') {
          pch=16,col=unlist(lapply(leg$col,FUN=t_col, percent=0)),cex=1.0,bty='n')
   #title='rotation [°]',
   
-  legend(x=0.02, y=0.25,
-        legend=c('regression', 'capped fraction'),
-        col=c('blue','blue'),lty=c(3,2),
-        cex=1.0,bty='n')
+  # legend(x=0.02, y=0.25,
+  #       legend=c('regression', 'capped fraction'),
+  #       col=c('blue','blue'),lty=c(3,2),
+  #       cex=1.0,bty='n')
   
   
-  print(unlist(lapply(leg$col,FUN=t_col, percent=0)))
+  # print(unlist(lapply(leg$col,FUN=t_col, percent=0)))
   
   #col.op <- t_col(col.tr, percent = 0)
   
   # # # # # # # # # # # # # # # # #
   # APPLY MODELS TO 60° DATA ONLY?
   
-  # plot(-1000,-1000,xlim=c(-0.2,1.2),ylim=c(-0.2,1.2),
-  #      main='',xlab='',ylab='',
-  #      bty='n',ax=F,asp=1)
-  # 
-  # title(xlab='explicit/adaptation',line=2)
-  # title(ylab='implicit/adaptation',line=2)
-  # 
-  # text(-0.2,1.25,'B: model (60° only)', font.main=1, cex=1.35*1.5, adj=0)
-  # 
-  # lines(c(0,0,1.1),c(1.1,0,0),col='#999999',lw=1,lty=1)
-  # lines(c(-0.1,1.1),c(1.1,-0.1),col='#000000',lw=1,lty=1)
-  # points(c(0,1),c(1,0),col='#000000')
-  # 
-  # df60 <- df[which(df$rotation == 60),]
-  # 
-  # points(df60$norm.expl, df60$norm.impl, pch=1, col='#66666660', cex=1)
-  # 
-  # trendCI <- getTrendCI(x = subdf$norm.expl,
-  #                       y = subdf$norm.impl,
-  #                       bootstraps = 1000,
-  #                       kernel='normal',
-  #                       bandwidth = 0.25,
-  #                       x.points=X)
-  # 
-  # polygon(x=c(X,rev(X)), y=c(trendCI[1,],rev(trendCI[2,])),col='#66666638',border=NA)
-  # 
-  # 
-  # compareModels(df60)
-  # 
-  # # first the two LM-based models:
-  # a_fit <- fitAdditivity(df60)
-  # p_fit <- fitPolynomial(df60) # not plotted!
-  # 
-  # newdata <- data.frame('norm.expl'=seq(-0.1,1.1,0.01))
-  # 
-  # a_pred <- predict.lm(a_fit, newdata=newdata)
-  # lines(newdata$norm.expl, a_pred, col='orange', lw=2)
-  # 
-  # #p_pred <- predict.lm(p_fit, newdata=newdata)
-  # #lines(newdata$norm.expl, p_pred, col='purple', lw=2)
-  # 
-  # # this is the first one I came up with:
-  # l_fit <- fitMaxlimited(df60)
-  # newdata$group_adaptation <- mean(df60$group_adaptation)
-  # l_pred <- maxLimited(par=l_fit, df=newdata)
-  # lines(newdata$norm.expl, l_pred, col='blue', lw=2)
-  # 
-  # # # and a second one:
-  # # f_fit <- fitFractionLeft(df60)
-  # # f_pred <- fractionLeft(par=f_fit, df=newdata)
-  # # lines(newdata$norm.expl, f_pred, col='purple', lw=2)
-  # 
-  # legend(x=0.3, y=1.2,
-  #        legend=c('regression', 'capped fraction model'),
-  #        col=c('orange','blue'),
-  #        cex=1.0,pch=16,bty='n')
-  # 
-  # 
-  # 
-  # 
-  # axis(side=1,at=c(0,1))
-  # axis(side=2,at=c(0,1))
-  # 
+  plot(-1000,-1000,xlim=c(-0.2,1.2),ylim=c(-0.2,1.2),
+       main='',xlab='',ylab='',
+       bty='n',ax=F,asp=1)
+
+  title(xlab='explicit/adaptation',line=2)
+  title(ylab='implicit/adaptation',line=2)
+
+  text(-0.2,1.25,'B: capped fraction', font.main=1, cex=1.35*1.5, adj=0)
+
+  lines(c(0,0,1.1),c(1.1,0,0),col='#999999',lw=1,lty=1)
+  lines(c(-0.1,1.1),c(1.1,-0.1),col='#000000',lw=1,lty=1)
+  points(c(0,1),c(1,0),col='#000000')
+
+  df60 <- df[which(df$rotation == 60),]
+
+  points(df60$norm.expl, df60$norm.impl, pch=1, col='#66666660', cex=1)
+
+  trendCI <- getTrendCI(x = subdf$norm.expl,
+                        y = subdf$norm.impl,
+                        bootstraps = 1000,
+                        kernel='normal',
+                        bandwidth = 0.25,
+                        x.points=X)
+
+  polygon(x=c(X,rev(X)), y=c(trendCI[1,],rev(trendCI[2,])),col='#66666638',border=NA)
+
+
+  compareModels(df60)
+
+  # first the two LM-based models:
+  a_fit <- fitAdditivity(df60)
+  #p_fit <- fitPolynomial(df60) # not plotted!
+
+  newdata <- data.frame('norm.expl'=seq(-0.1,1.1,0.01))
+
+  a_pred <- predict.lm(a_fit, newdata=newdata)
+  lines(newdata$norm.expl, a_pred, col='orange', lw=2)
+
+  #p_pred <- predict.lm(p_fit, newdata=newdata)
+  #lines(newdata$norm.expl, p_pred, col='purple', lw=2)
+
+  # this is the first one I came up with:
+  l_fit <- fitMaxlimited(df60)
+  newdata$adaptation <- mean(df60$adaptation)
+  l_pred <- maxLimited(par=l_fit, df=newdata)
+  lines(newdata$norm.expl, l_pred, col='blue', lw=2)
+
+  # # and a second one:
+  # f_fit <- fitFractionLeft(df60)
+  # f_pred <- fractionLeft(par=f_fit, df=newdata)
+  # lines(newdata$norm.expl, f_pred, col='purple', lw=2)
+
+  legend(x=0.3, y=1.2,
+         legend=c('regression', 'capped fraction model'),
+         col=c('orange','blue'),
+         cex=1.0,pch=16,bty='n')
+  
+  axis(side=1,at=c(0,1))
+  axis(side=2,at=c(0,1))
+
   
   
   # # # # # # # # # # # # # # # #
@@ -3927,7 +3925,7 @@ fig5_Relations <- function(target='inline') {
   title(xlab='predicted adaptation/rotation',line=2)
   title(ylab='measured adaptation/rotation',line=2)
   
-  text(-0.4,2.5,'B: max. likelihood', font.main=1, cex=1.35*1.5, adj=0)
+  text(-0.4,2.5,'C: max. likelihood', font.main=1, cex=1.35*1.5, adj=0)
   lines(c(0,2),c(0,2),col='#999999',lw=1,lty=1)
   
   MLdf <- MLE_adaptation()
@@ -4070,74 +4068,74 @@ fig5_Relations <- function(target='inline') {
   # COMPARE EXPLICIT METHODS
   
   
-  plot(-1000,-1000,xlim=c(-0.2,1.2),ylim=c(-0.2,1.2),
-       main='',xlab='',ylab='',
-       bty='n',ax=F,asp=1)
-  
-  title(xlab='explicit/adaptation',line=2)
-  title(ylab='implicit/adaptation',line=2)
-  
-  text(-0.2,1.25,'C: explicit measure', font.main=1, cex=1.35*1.5, adj=0)
-  
-  lines(c(0,0,1.1),c(1.1,0,0),col='#999999',lw=1,lty=1)
-  lines(c(-0.1,1.1),c(1.1,-0.1),col='#000000',lw=1,lty=1)
-  points(c(0,1),c(1,0),col='#000000')
-  
-  
-  methods <- c("aim.reports","PDP.difference")
-  
-  X <- seq(-0.1,1.1,0.01)
-  
-  #groups <- getGroups()
-  
-  #print(str(df))
-  
-  colors <- c()
-  Ns     <- c()
-  
-  for (methodno in c(1:length(methods))) {
-    
-    subdf <- df[which(df$explicit.method == methods[methodno]),]
-    N <- dim(subdf)[1]
-    Ns <- c(Ns,N)
-    
-    groupname <- c('aims','control')[methodno]
-    col.op <- as.character(groups$col.op[which(groups$group == groupname)])
-    col.tr <- as.character(groups$col.tr[which(groups$group == groupname)])
-    
-    colors <- c(colors, col.op)
-    
-    points(subdf$norm.expl, subdf$norm.impl, pch=1, col=col.tr, cex=1)
-    
-    #print(str(subdf))
-    #print(subdf$norm.expl)
-    
-    trendCI <- getTrendCI(x = subdf$norm.expl,
-                          y = subdf$norm.impl,
-                          bootstraps = 1000,
-                          kernel='normal',
-                          bandwidth = 0.25,
-                          x.points=X)
-    
-    polygon(x=c(X,rev(X)), y=c(trendCI[1,],rev(trendCI[2,])),col=col.tr,border=NA)
-    
-    trends <- ksmooth(subdf$norm.expl, subdf$norm.impl,
-                      kernel="normal",
-                      bandwidth=0.25,
-                      x.points=X)
-    
-    lines(trends$x, trends$y, col=col.op)
-    
-    
-  }
-  
-  legend(x=0.3,y=1.2,
-         legend=sprintf('%s (N=%d)',c('aiming / reports', 'PDP difference'),Ns),
-         pch=16,col=colors,cex=1.0,bty='n')
-  
-  
-  axis(side=1,at=c(0,1))
-  axis(side=2,at=c(0,1))
+  # plot(-1000,-1000,xlim=c(-0.2,1.2),ylim=c(-0.2,1.2),
+  #      main='',xlab='',ylab='',
+  #      bty='n',ax=F,asp=1)
+  # 
+  # title(xlab='explicit/adaptation',line=2)
+  # title(ylab='implicit/adaptation',line=2)
+  # 
+  # text(-0.2,1.25,'C: explicit measure', font.main=1, cex=1.35*1.5, adj=0)
+  # 
+  # lines(c(0,0,1.1),c(1.1,0,0),col='#999999',lw=1,lty=1)
+  # lines(c(-0.1,1.1),c(1.1,-0.1),col='#000000',lw=1,lty=1)
+  # points(c(0,1),c(1,0),col='#000000')
+  # 
+  # 
+  # methods <- c("aim.reports","PDP.difference")
+  # 
+  # X <- seq(-0.1,1.1,0.01)
+  # 
+  # #groups <- getGroups()
+  # 
+  # #print(str(df))
+  # 
+  # colors <- c()
+  # Ns     <- c()
+  # 
+  # for (methodno in c(1:length(methods))) {
+  #   
+  #   subdf <- df[which(df$explicit.method == methods[methodno]),]
+  #   N <- dim(subdf)[1]
+  #   Ns <- c(Ns,N)
+  #   
+  #   groupname <- c('aims','control')[methodno]
+  #   col.op <- as.character(groups$col.op[which(groups$group == groupname)])
+  #   col.tr <- as.character(groups$col.tr[which(groups$group == groupname)])
+  #   
+  #   colors <- c(colors, col.op)
+  #   
+  #   points(subdf$norm.expl, subdf$norm.impl, pch=1, col=col.tr, cex=1)
+  #   
+  #   #print(str(subdf))
+  #   #print(subdf$norm.expl)
+  #   
+  #   trendCI <- getTrendCI(x = subdf$norm.expl,
+  #                         y = subdf$norm.impl,
+  #                         bootstraps = 1000,
+  #                         kernel='normal',
+  #                         bandwidth = 0.25,
+  #                         x.points=X)
+  #   
+  #   polygon(x=c(X,rev(X)), y=c(trendCI[1,],rev(trendCI[2,])),col=col.tr,border=NA)
+  #   
+  #   trends <- ksmooth(subdf$norm.expl, subdf$norm.impl,
+  #                     kernel="normal",
+  #                     bandwidth=0.25,
+  #                     x.points=X)
+  #   
+  #   lines(trends$x, trends$y, col=col.op)
+  #   
+  #   
+  # }
+  # 
+  # legend(x=0.3,y=1.2,
+  #        legend=sprintf('%s (N=%d)',c('aiming / reports', 'PDP difference'),Ns),
+  #        pch=16,col=colors,cex=1.0,bty='n')
+  # 
+  # 
+  # axis(side=1,at=c(0,1))
+  # axis(side=2,at=c(0,1))
   
   
   if (target %in% c('svg','pdf')) {
