@@ -257,7 +257,7 @@ maxLimited <- function(par, df) {
   maxImpl  <- par['maxImpl']
   fracExpl <- par['fracExpl']
   
-  implicit <- pmin( unlist(maxImpl / df$group_adaptation),
+  implicit <- pmin( unlist(maxImpl / df$adaptation),
                     unlist(1-df$norm.expl)*fracExpl )
   
   #print(implicit)
@@ -333,7 +333,7 @@ fractionLeft <- function(par, df) {
   implCap  <- par['implCap']
   
   explicit  <- unlist(df$norm.expl)
-  basefrac  <- unlist(implCap/df$group_adaptation)
+  basefrac  <- unlist(implCap/df$adaptation)
   roomleft  <- (1 - explicit)
   usedfrac  <- basefrac + explicit * (implFrac - basefrac)
   
@@ -875,12 +875,12 @@ scaled_components_MSE <- function(par, df) {
 
 # additivity recovery -----
 
-simulatedAdditivity <- function() {
+simulatedAdditivity <- function(bootstraps=5000, normalize=FALSE) {
   
   # run this on the aiming group for now:
   
   N          <- 24
-  bootstraps <- 5000
+  #bootstraps <- 5000
   
   
   
@@ -907,11 +907,13 @@ simulatedAdditivity <- function() {
   
   
   # normalize:
-  # implicit <- implicit / adaptation
-  # explicit <- explicit / adaptation
-
+  if (normalize) {
+    implicit <- implicit / adaptation
+    explicit <- explicit / adaptation
+  }
   
   # set up vectors to collect simulated data:
+  slope <- c()
   lo <- c()
   hi <- c()
   include1 <- c()
@@ -922,6 +924,7 @@ simulatedAdditivity <- function() {
     expl <- explicit[bs,]
     
     i_lm <- lm(impl ~ expl)
+    slope <- c(slope, as.numeric(i_lm$coefficients[2]))
     CI <- confint(i_lm,parm='expl',level=0.95)
     
     lo <- c(lo, CI[1])
@@ -932,8 +935,44 @@ simulatedAdditivity <- function() {
       include1 <- c(include1, FALSE)
     }
     
+    
+    
   }
   
   print(mean(include1))
+  
+  return(data.frame(slope,lo,hi,include1))
+}
+
+plotAdditivityRecovery <- function(bootstraps=5000) {
+  
+  df <- simulatedAdditivity()
+  groups <- getGroups()
+  
+  plot(-1000,-1000,main='simulated additivity slopes',
+       xlim=c(0,3),ylim=c(-2.2,0.2),
+       xlab='descriptive',ylab='slope',
+       ax=F,bty='n')
+  
+  lines(c(0,3),c(-1,-1),col='black')
+  
+  slopeCI <- quantile(df$slope, probs=c(0.025, 0.5, 0.975))
+  loCI    <- quantile(df$lo,    probs=c(0.025, 0.5, 0.975))
+  hiCI    <- quantile(df$hi,    probs=c(0.025, 0.5, 0.975))
+  
+  print(slopeCI)
+  print(loCI)
+  print(hiCI)
+  
+  polygon(x=c(1/3,2/3,2/3,1/3)+0,y=rep(slopeCI[c(1,3)],each=2),border=NA,col=groups$col.tr[3])
+  lines(x=c(1/3,2/3)+0,y=rep(slopeCI[c(2)],2),col=groups$col.op[3])
+  
+  polygon(x=c(1/3,2/3,2/3,1/3)+1,y=rep(loCI[c(1,3)],each=2),border=NA,col=groups$col.tr[1])
+  lines(x=c(1/3,2/3)+1,y=rep(loCI[c(2)],2),col=groups$col.op[1])
+  polygon(x=c(1/3,2/3,2/3,1/3)+2,y=rep(hiCI[c(1,3)],each=2),border=NA,col=groups$col.tr[5])
+  lines(x=c(1/3,2/3)+2,y=rep(hiCI[c(2)],2),col=groups$col.op[5])
+  
+  axis(side=1,at=c(0.5, 1.5, 2.5),labels=c('mean 95%CI','lower 95%CI','upper 95%CI'))
+  axis(side=2,at=c(-2,-1,0))
   
 }
