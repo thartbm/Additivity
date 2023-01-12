@@ -875,25 +875,25 @@ scaled_components_MSE <- function(par, df) {
 
 # additivity recovery -----
 
-simulatedAdditivity <- function(bootstraps=5000, normalize=FALSE) {
+simulatedAdditivity <- function(bootstraps=5000, N=24, normalize=FALSE) {
   
   # run this on the aiming group for now:
   
-  N          <- 24
+  #N          <- 24
   #bootstraps <- 5000
   
-  
+  set.seed(1)
   
   # implicit <- matrix( rnorm(n    = N*bootstraps,
   #                           mean = 15,
   #                           sd   = 5), nrow=bootstraps, ncol=N)
   explicit <- matrix( rnorm(n    = N*bootstraps,
-                            mean = 15,
+                            mean = 20,
                             sd   = 5), nrow=bootstraps, ncol=N)
   
   adaptation_noise <- matrix( rnorm(n    = N*bootstraps,
                                     mean = 0,
-                                    sd   = 2.5), nrow=bootstraps, ncol=N)
+                                    sd   = 5), nrow=bootstraps, ncol=N)
   implicit_noise <- matrix( rnorm(n    = N*bootstraps,
                                   mean = 0,
                                   sd   = 5), nrow=bootstraps, ncol=N)
@@ -902,7 +902,7 @@ simulatedAdditivity <- function(bootstraps=5000, normalize=FALSE) {
   # adaptation <- implicit + explicit + adaptation_noise
   
   # ADDITIVITY:
-  adaptation <- 30 + adaptation_noise
+  adaptation <- 40 + adaptation_noise
   implicit <- adaptation - explicit + implicit_noise
   
   
@@ -913,7 +913,10 @@ simulatedAdditivity <- function(bootstraps=5000, normalize=FALSE) {
   }
   
   # set up vectors to collect simulated data:
+  intercept <- c()
   slope <- c()
+  exp_min <- c()
+  exp_max <- c()
   lo <- c()
   hi <- c()
   include1 <- c()
@@ -923,7 +926,11 @@ simulatedAdditivity <- function(bootstraps=5000, normalize=FALSE) {
     impl <- implicit[bs,]
     expl <- explicit[bs,]
     
+    exp_min <- c(exp_min, min(expl))
+    exp_max <- c(exp_max, max(expl))
+    
     i_lm <- lm(impl ~ expl)
+    intercept <- c(intercept, as.numeric(i_lm$coefficients[1]))
     slope <- c(slope, as.numeric(i_lm$coefficients[2]))
     CI <- confint(i_lm,parm='expl',level=0.95)
     
@@ -935,19 +942,25 @@ simulatedAdditivity <- function(bootstraps=5000, normalize=FALSE) {
       include1 <- c(include1, FALSE)
     }
     
-    
-    
   }
   
   print(mean(include1))
   
-  return(data.frame(slope,lo,hi,include1))
+  return(list('simulation'=data.frame(intercept,slope,exp_min,exp_max,lo,hi,include1),
+              'data'=list('implicit'=implicit,
+                          'explicit'=explicit,
+                          'adaptation'=adaptation)) )
 }
 
 plotAdditivityRecovery <- function(bootstraps=5000) {
   
-  df <- simulatedAdditivity()
+  sim <- simulatedAdditivity(bootstraps=bootstraps,
+                            N=24)
+  df <- sim[['simulation']]
+  data <- sim[['data']]
   groups <- getGroups()
+  
+  layout(mat=matrix(c(1,2),nrow=1,ncol=2,byrow=TRUE))
   
   plot(-1000,-1000,main='simulated additivity slopes',
        xlim=c(0,3),ylim=c(-2.2,0.2),
@@ -974,5 +987,48 @@ plotAdditivityRecovery <- function(bootstraps=5000) {
   
   axis(side=1,at=c(0.5, 1.5, 2.5),labels=c('mean 95%CI','lower 95%CI','upper 95%CI'))
   axis(side=2,at=c(-2,-1,0))
+  
+  # NEW PLOT
+  
+  plot(-1000,-1000,
+       xlim=c(-5,50),ylim=c(-5,50),
+       main='',xlab='',ylab='',
+       bty='n',ax=F)
+  
+  # df <- data.frame('implicit' = data[['implicit']][1,],
+  #                  'explicit' = data[['explicit']][1,])
+  # 
+  # linreg <- lm(implicit ~ explicit, data=df)
+  # print(summary(linreg))
+  # 
+  # ci <- predict( linreg,
+  #                newdata=data.frame(explicit=seq(10,30,.2)),
+  #                interval = "confidence")
+  # 
+  # #print(ci)
+  # 
+  # X <- c(seq(10,30,.2),rev(seq(10,30,.2)))
+  # Y <- c(ci[,'lwr'],rev(ci[,'upr']))
+  # polygon(x=X,y=Y,col='red')
+  # 
+  # print(ci[,'lwr'])
+  # print(ci[,'upr'])
+  # 
+  # print(X)
+  # print(Y)
+  
+  # str(df)
+  for (bs in c(1:bootstraps)) {
+    X <- df[bs,c('exp_min','exp_max')]
+    lines(x=X,
+          y=df$intercept[bs] + (X*df$slope[bs]),
+          col='#9966ff0f')
+  }
+  
+  
+  axis(side=1,at=c(0,15,30,45))
+  axis(side=2,at=c(0,15,30,45))
+  
+  #dev.off()
   
 }
