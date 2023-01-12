@@ -1764,13 +1764,272 @@ figB_fastInstructed <- function(target='inline') {
 
 # paper figures -----
 
-fig2_Learning_PointEstimates <- function(target='inline') {
-  
+fig1_Additivity <- function(target='inline') {
+
   if (target=='svg') {
-    svglite::svglite(file='doc/Fig2_learning.svg', width=8, height=6, fix_text_size = FALSE)
+    svglite::svglite(file='doc/Fig1_additivity.svg', width=8, height=5, fix_text_size = FALSE)
   }
   if (target=='pdf') {
-    cairo_pdf(filename='doc/Fig2_learning.pdf', width=8, height=6)
+    cairo_pdf(filename='doc/Fig1_additivity.pdf', width=8, height=5)
+  }
+  
+  textsize <- 1.35
+  
+  layout(mat=matrix(c(1,2,3,4,5,6),nrow=2,ncol=3,byrow=TRUE))
+  
+  groups <- getGroups()
+  
+  par(mar=c(3.5, 3.5, 0, 0.1))
+  
+  process <- c('implicit',  'explicit',  'adaptation')
+  col.op  <- c('#0000ffff', '#e51636ff', '#7f00d8ff' )
+  col.tr  <- c('#0000ff2f', '#e516362f', '#7f00d82f' )
+  cols <- data.frame(process, col.op, col.tr)
+  
+  # # # # # # # # # # # # # # # # # 
+  # A: rotation=45, adaptation=40, implicit=20, explicit=20
+  
+  plot(-1000, -1000,
+       main='', xlab='', ylab='', 
+       xlim=c(0,1), ylim=c(0,1), 
+       ax=F, bty='n', asp=1)
+  text(0,0.95,'A: additivity', font.main=1, cex=1.35*1.5, adj=0)
+  
+  angles_deg <- c('rotation'   = 45,
+                  'adaptation' = 40,
+                  'implicit'   = 20,
+                  'explicit'   = 20,
+                  'target'     = 15)
+  
+  drawAdditivitySchematic(angles_deg = angles_deg,
+                          cols = cols,
+                          addLabels = 1)
+  
+  lab_ang <- (angles_deg['target']/180)*pi
+  text(x=cos(lab_ang)-0.15,
+       y=sin(lab_ang)-0.1,
+       labels='visual target',
+       srt=angles_deg['target'])
+  
+  best_deg <- sum(angles_deg[c('target','rotation')])
+  best_rad <- (best_deg/180)*pi
+  text(x=cos(best_rad)-0.15,
+       y=sin(best_rad)-0.17,
+       labels='full compensation',
+       srt=best_deg,
+       col='gray')
+  
+
+  # # # # # # # # # # # # # # # # # 
+  # B: rotation=45, adaptation=40, implicit=30, explicit=10
+  
+  plot(-1000, -1000,
+       main='', xlab='', ylab='', 
+       xlim=c(0,1), ylim=c(0,1), 
+       ax=F, bty='n', asp=1)
+  text(0,0.95,'B: less explicit', font.main=1, cex=1.35*1.5, adj=0)
+  #title(xlab='explicit [°]', line = 0.5,cex.lab=textsize)
+  #title(ylab='implicit [°]', line = 2.5,cex.lab=textsize)
+
+  angles_deg <- c('rotation'   = 45,
+                  'adaptation' = 40,
+                  'implicit'   = 30,
+                  'explicit'   = 10,
+                  'target'     = 15)
+  
+  drawAdditivitySchematic(angles_deg = angles_deg,
+                          cols = cols,
+                          addLabels = 2)
+  
+  # # # # # # # # # # # # # # # # # 
+  # C: rotation=45, adaptation=40, implicit=10, explicit=30
+  
+  plot(-1000, -1000,
+       main='', xlab='', ylab='', 
+       xlim=c(0,1), ylim=c(0,1), 
+       ax=F, bty='n', asp=1)
+  text(0,0.95,'C: more explicit', font.main=1, cex=1.35*1.5, adj=0)
+  #title(xlab='explicit [°]', line = 0.5,cex.lab=textsize)
+  #title(ylab='implicit [°]', line = 2.5,cex.lab=textsize)
+  
+  angles_deg <- c('rotation'   = 45,
+                  'adaptation' = 40,
+                  'implicit'   = 10,
+                  'explicit'   = 30,
+                  'target'     = 15)
+  
+  drawAdditivitySchematic(angles_deg = angles_deg,
+                          cols = cols,
+                          addLabels = 2)
+  # # # # # # # # # # # # # # # # # 
+  # D: diagonal (slope:-1, intercept:24) explicit=c(4,12,20), implicit=c(20,12,4)
+  
+  plot(-1000, -1000,
+       main='', xlab='', ylab='', 
+       xlim=c(-5,50), ylim=c(-5,50), 
+       ax=F, bty='n', asp=1)
+  text(-5,47.25,'D: linearity', font.main=1, cex=1.35*1.5, adj=0)
+  title(xlab='explicit [°]', line = 2, cex.lab=textsize)
+  title(ylab='implicit [°]', line = 2, cex.lab=textsize)
+  
+  sims <- simulatedAdditivity(bootstraps=1000, N=24, normalize=FALSE)
+  df <- sims[['simulation']]
+  data <- sims[['data']]
+  
+  lines(x=c(0,0,45),y=c(45,0,0),col='gray')
+  
+  lines(x=c(0,10,10),
+        y=c(30,30,0),
+        col='gray',
+        lty=2)
+  lines(x=c(0,20,20),
+        y=c(20,20,0),
+        col='gray',
+        lty=2)
+  lines(x=c(0,30,30),
+        y=c(10,10,0),
+        col='gray',
+        lty=2)
+  
+  points(x=c(0,40),
+         y=c(40,0),
+         col=cols$col.op[which(cols$process %in% c('implicit','explicit'))],
+         pch=16,cex=1.5)
+  
+  lines(x=c(-2,42),y=c(42,-2),col='black')
+  
+  points(x=c(20,10,30),
+         y=c(20,30,10),
+         col=cols$col.op[which(cols$process == 'adaptation')],
+         pch=16,cex=1.5)
+  
+  text(x=c(20,10,30)+3,
+       y=c(20,30,10)+3,
+       col=cols$col.op[which(cols$process == 'adaptation')],
+       labels=c('A','B','C'),
+       cex=1.5)
+  
+  axis(side=1,at=c(0,10,20,30,40))
+  axis(side=2,at=c(0,10,20,30,40))
+  
+  
+  # # # # # # # # # # # # # # # # # 
+  # E: many different total adaptations, with slopes in 95% CI
+  
+  plot(-1000, -1000,
+       main='', xlab='', ylab='', 
+       xlim=c(-0.1,1.25), ylim=c(-0.1,1.25), 
+       ax=F, bty='n', asp=1)
+  text(-0.1,1.1825,'E: simulations', font.main=1, cex=1.35*1.5, adj=0)
+  # title(xlab='explicit [°]', line = 2, cex.lab=textsize)
+  # title(ylab='implicit [°]', line = 2, cex.lab=textsize)
+  
+  text(-0.1,1,
+       'generative model:',
+       cex=1.1,
+       adj=0)
+  text(0,0.8,
+       expression(paste(epsilon, ' = N(', mu, '=0°, ', sigma, '=5°)') ),
+       cex=1.1,
+       adj=0)
+  
+  text(0,0.65,
+       expression(paste(A[p], ' = 40° + ', epsilon['a,p']) ),
+       cex=1.1,
+       adj=0)
+  text(0,0.5,
+       expression(paste(E[p], ' = 20° + ', epsilon['e,p']) ),
+       cex=1.1,
+       adj=0)
+  text(0,0.35,
+       expression(paste(I[p], ' = ', A[p], ' - ', E[p], ' + ', epsilon['i,p']) ),
+       cex=1.1,
+       adj=0)
+  
+  text(-0.1,0.15,
+       'slope recovery:',
+       cex=1.1,
+       adj=0)
+  
+  text(0,-0.05,
+       expression(paste(hat(I)[p], ' ~ ', beta[0], ' + ', beta[1], E[p]) ),
+       cex=1.2,
+       adj=0)
+  
+  # # # # # # # # # # # # # # # # # 
+  # F: many different total adaptations, with regression 95% CI
+  
+  plot(-1000, -1000,
+       main='', xlab='', ylab='', 
+       xlim=c(-5,50), ylim=c(-5,50), 
+       ax=F, bty='n', asp=1)
+  # text(-5,47.25,'E: simulations', font.main=1, cex=1.35*1.5, adj=0)
+  title(xlab='explicit [°]', line = 2, cex.lab=textsize)
+  title(ylab='implicit [°]', line = 2, cex.lab=textsize)
+  
+  lines(x=c(0,0,45),y=c(45,0,0),col='gray')
+  lines(x=c(-2,42),y=c(42,-2),col='black')
+  #points(x=c(0,40),y=c(40,0),col='black',pch=1,cex=1.5)
+  
+  
+  for (bs in c(1:dim(df)[1])) {
+    X <- df[bs,c('exp_min','exp_max')]
+    if (df$include1[bs]) {col='#6666ff0f'} else {col='#ff66662f'}
+    lines(x=X,
+          y=df$intercept[bs] + (X*df$slope[bs]),
+          col=col)
+  }
+  
+  lines(x=c(5,35),
+        y=c(35,5),
+        lty=3,
+        col='black')
+  
+  axis(side=1,at=c(0,45))
+  axis(side=2,at=c(0,45))
+  
+  
+  # # # # # # # # # # # # # # # # # # 
+  # # F: implicit & explicit normalized by adaptation
+  # 
+  # plot(-1000, -1000,
+  #      main='', xlab='', ylab='', 
+  #      xlim=c(-0.1,1.25), ylim=c(-0.1,1.25), 
+  #      ax=F, bty='n', asp=1)
+  # text(-0.1,1.1825,'F: normalization', font.main=1, cex=1.35*1.5, adj=0)
+  # title(xlab='explicit/adaptation', line = 2, cex.lab=textsize)
+  # title(ylab='implicit/adaptation', line = 2, cex.lab=textsize)
+  # 
+  # lines(x=c(0,0,1.1),y=c(1.1,0,0),col='gray')
+  # lines(x=c(-0.05,1.05),y=c(1.05,-0.05),col='black')
+  # points(x=c(0,1),y=c(1,0),col='black',pch=1,cex=1.5)
+  # 
+  # 
+  # points(x=data[['explicit']][1,]/40,
+  #        y=data[['implicit']][1,]/40,
+  #        pch=1, cex=1.5,
+  #        col='gray')
+  # points(x=data[['explicit']][1,]/data[['adaptation']][1,],
+  #        y=data[['implicit']][1,]/data[['adaptation']][1,],
+  #        pch=1, cex=1.5,
+  #        col='blue')
+  # 
+  # axis(side=1,at=c(0,1))
+  # axis(side=2,at=c(0,1))
+  
+  if (target %in% c('pdf','svg')) {
+    dev.off()
+  }
+  
+}
+
+fig3_Learning_PointEstimates <- function(target='inline') {
+  
+  if (target=='svg') {
+    svglite::svglite(file='doc/Fig3_learning.svg', width=8, height=6, fix_text_size = FALSE)
+  }
+  if (target=='pdf') {
+    cairo_pdf(filename='doc/Fig3_learning.pdf', width=8, height=6)
   }
   
   textsize <- 1.35
@@ -3194,13 +3453,13 @@ fig2_Learning_PointEstimates <- function(target='inline') {
 # }
 
 
-fig3_Awareness_TwoRate <- function(target='inline') {
+fig4_Awareness_TwoRate <- function(target='inline') {
   
   if (target=='svg') {
-    svglite::svglite(file='doc/Fig3_tworate.svg', width=8, height=3, fix_text_size = FALSE)
+    svglite::svglite(file='doc/Fig4_tworate.svg', width=8, height=3, fix_text_size = FALSE)
   }
   if (target=='pdf') {
-    cairo_pdf(filename='doc/Fig3_tworate.pdf', width=8, height=3)
+    cairo_pdf(filename='doc/Fig4_tworate.pdf', width=8, height=3)
   }
   
   textsize <- 0.8
@@ -3483,16 +3742,15 @@ fig3_Awareness_TwoRate <- function(target='inline') {
   }
   
   
-  
 }
 
-fig4_ExtraData <- function(target='inline') {
+fig5_ExtraData <- function(target='inline') {
   
   if (target == 'svg') {
-    svglite::svglite(file='doc/Fig4_extradata.svg', width=4, height=8, fix_text_size = FALSE)
+    svglite::svglite(file='doc/Fig5_extradata.svg', width=4, height=8, fix_text_size = FALSE)
   }
   if (target == 'pdf') {
-    cairo_pdf(filename='doc/Fig4_extradata.pdf', width=4, height=8)
+    cairo_pdf(filename='doc/Fig5_extradata.pdf', width=4, height=8)
   }
   
   textsize <- 0.8
@@ -3722,13 +3980,13 @@ fig4_ExtraData <- function(target='inline') {
   
 }
 
-fig5_Relations <- function(target='inline') {
+fig6_Relations <- function(target='inline') {
   
   if (target=='svg') {
-    svglite::svglite(file='doc/Fig5_relations.svg', width=8, height=3, fix_text_size = FALSE)
+    svglite::svglite(file='doc/Fig6_relations.svg', width=8, height=3, fix_text_size = FALSE)
   }
   if (target=='pdf') {
-    cairo_pdf(filename='doc/Fig5_relations.pdf', width=8, height=3)
+    cairo_pdf(filename='doc/Fig6_relations.pdf', width=8, height=3)
   }
   
   
@@ -4055,8 +4313,8 @@ fig5_Relations <- function(target='inline') {
   
   legend(x=-0.4,y=2.4,
          legend=c(
-                  expression(paste(hat(A)[k], ' = ', E[k], ' + ', I[k], ' (additive)') ),
-                  expression(paste(hat(A)[k], ' = ', w[ek], E[k], ' + ', w[ik], I[k], ' (MLE)'))
+                  expression(paste(hat(A)[k], ' ~ ', E[k], ' + ', I[k], ' (additive)') ),
+                  expression(paste(hat(A)[k], ' ~ ', w['e,k'], E[k], ' + ', w['i,k'], I[k], ' (MLE)'))
                   ),
          col=cols.op,cex=1.0,bty='n',pch=16)
   
@@ -4351,6 +4609,104 @@ testColors <- function() {
   
 }
 
+drawAdditivitySchematic <- function(angles_deg, 
+                                    cols,
+                                    addLabels = FALSE) {
+  
+  angles_rad <- (angles_deg/180)*pi
+  
+  #print(angles_deg)
+  
+  # target:
+  points(cos(angles_rad['target']),sin(angles_rad['target']),col='black')
+  
+  # ideal reach:
+  lines(x=c(0,cos(angles_rad['target']+angles_rad['rotation'])),
+        y=c(0,sin(angles_rad['target']+angles_rad['rotation'])),
+        lty=2,col='gray')
+  
+  # explicit part:
+  explicit <- seq( angles_rad['target'], 
+                   angles_rad['target'] + angles_rad['explicit'],
+                   length.out = 30)
+  
+  polygon(x = c(0,cos(explicit)) * 0.8,
+          y = c(0,sin(explicit)) * 0.8,
+          border = NA,
+          col=cols$col.tr[which(cols$process == 'explicit')] )
+  
+  # implicit part:
+  implicit <- seq( angles_rad['target'] + angles_rad['explicit'], 
+                   angles_rad['target'] + angles_rad['explicit'] + angles_rad['implicit'],
+                   length.out = 30)
+  
+  polygon(x = c(0,cos(implicit)) * 0.8,
+          y = c(0,sin(implicit)) * 0.8,
+          border = NA,
+          col=cols$col.tr[which(cols$process == 'implicit')] )
+  
+  # full adaptation:
+  adaptation <- seq( angles_rad['target'], 
+                     angles_rad['target'] + angles_rad['explicit'] + angles_rad['implicit'],
+                     length.out = 60)
+  
+  polygon( x = c(cos(adaptation)*0.8, cos(rev(adaptation))),
+           y = c(sin(adaptation)*0.8, sin(rev(adaptation))),
+           border = NA,
+           col=cols$col.tr[which(cols$process == 'adaptation')] )
+  
+  
+  # actual reach:
+  # lines(x=c(0,cos(angles_rad['target']+angles_rad['adaptation'])),
+  #       y=c(0,sin(angles_rad['target']+angles_rad['adaptation'])),
+  #       lty=1,
+  #       col=cols$col.op[which(cols$process == 'adaptation')])
+  
+  arrows(x0 = 0,
+         y0 = 0,
+         x1 = cos(angles_rad['target']+angles_rad['adaptation']),
+         y1 = sin(angles_rad['target']+angles_rad['adaptation']),
+         length=0.1, angle=15,
+         col=cols$col.op[which(cols$process == 'adaptation')])
+
+  arrows(x0 = 0,
+         y0 = 0,
+         x1 = cos(angles_rad['target']+angles_rad['explicit'])*0.8,
+         y1 = sin(angles_rad['target']+angles_rad['explicit'])*0.8,
+         length=0.1, angle=15,
+         col=cols$col.op[which(cols$process == 'explicit')])
+  
+  
+  if (addLabels) {
+    # explicit label:
+    exp.ang <- angles_rad['target'] + (angles_rad['explicit']/2)
+    text(x = cos(exp.ang)*0.5,
+         y = sin(exp.ang)*0.5,
+         adj = c(0.5, 0.5),
+         labels = c('explicit',sprintf('%d°',angles_deg['explicit']))[addLabels],
+         col = cols$col.op[which(cols$process == 'explicit')],
+         srt = (exp.ang/pi)*180)
+    
+    # implicit label:
+    imp.ang <- angles_rad['target'] + angles_rad['explicit'] + (angles_rad['implicit']/2) 
+    text(x = cos(imp.ang)*0.5,
+         y = sin(imp.ang)*0.5,
+         adj = c(0.5, 0.5),
+         labels = c('implicit',sprintf('%d°',angles_deg['implicit']))[addLabels],
+         col = cols$col.op[which(cols$process == 'implicit')],
+         srt = (imp.ang/pi)*180)
+    
+    adt.ang <- angles_rad['target'] + (angles_rad['adaptation'] / 2)
+    text(x = cos(adt.ang)*0.9,
+         y = sin(adt.ang)*0.9,
+         adj = c(0.5, 0.5),
+         labels = c('adaptation',sprintf('%d°',angles_deg['adaptation']))[addLabels],
+         col = cols$col.op[which(cols$process == 'adaptation')],
+         srt = ((adt.ang/pi)*180) - 90 )
+    
+  }
+  
+}
 
 
 
