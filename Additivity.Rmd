@@ -177,11 +177,14 @@ Note that the equations for the two models are exactly equal, the only differenc
 
 ```{r}
 for (target in c('svg', 'pdf')) {
-  fig2_Learning(target=target)
-  fig3_Additivity(target=target)
-  fig4_Explicit(target=target)
-  fig5_Additivity(target=target)
-  fig6_splitAiming(target=target)
+  fig1_Additivity(target=target)
+  #fig 2 = methods figure, not made in R
+  fig3_Learning_PointEstimates(target=target)
+  fig4_Awareness_TwoRate(target=target)
+  fig5_ExtraData(target=target)
+  fig6_Relations(target=target)
+  
+  # extra stuff:
   #figA_slowControl(target=target)
   #figB_fastInstructed(target=target)
 }
