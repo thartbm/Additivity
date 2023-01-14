@@ -10,6 +10,17 @@ link-citations: yes
  
 In this document we pre-process and analyze data and make figures for a project where we tested the presumed additivity of implicit and explicit motor adaptation. First we did an experiment with 3 groups of participants that performed motor adaptation in conditions with the same rotation to adapt to, but designed to evoke different levels of explicit adaptation. Then we collected data from a set of other studies, and tested additivity in that data as well.
 
+# Additivity
+
+Let's first have a look at this "additivity assumption".
+
+```{r}
+fig1_Additivity()
+```
+Additivity is usually illustrated as in panel A, where the difference between total adaptation (purple) and explicit adaptation (red) is taken to be implicit adaptation (blue). This also means that if one increases by a certain amount, the other decreases by the same amount (panels B & C). This amounts to a linear relationship between implicit and explicit adaptation. SInce the additivity assumption predicts a linear relationship with a specific slope (-1) we develop a test of additivity based on this prediction. We put this statistical test to the test in a simulation here. First we generate noisy data according to what is predicted by additivity (panel E: left/top) and then find the slope in that data by fitting a linear model (panel E: bottom/left). We then see that the confidence interval for the slope contains -1 in 95% of simulations (951/1000). In other words, using the confidence interval of the fitted slope and testing if it includes -1 amounts to a statistical test with alpha=0.05. We will be using this test, and variations on it.
+
+# Experiment
+
 In our experiment, the first two groups got either no additional information (control group) or they got an instruction that explained the perturbation and how to counter it, and these participants would only do the rotated phase of the task once they demonstrated they understood how to counter the rotation (instructed group). The third group did not get an instruction, but before every reach training trials they were asked to orient an arrow in the direction they were planning to move their hand in order to get the cursor to the target. The idea was that asking participants to think really hard on where they would move their hand relative to the target, might cue them in on the fact that aiming your hand somewhere other than the target might be the way to optimally do the task. In effect, this would act like instructions such as used in other studies [@Werner2015; @Modchalingam2019], and in the instructed group here.
 
 We test two forms of additivity, first the more common "strict" additivity that assumes total adaptation equals the sum of implicit and explicit adaptation:
