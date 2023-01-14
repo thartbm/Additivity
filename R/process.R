@@ -737,3 +737,78 @@ getNoCursors <- function(df,FUN=median) {
   
 }
 
+# External Data -----
+
+
+getAllExtraData <- function() {
+ 
+  label_df <- read.csv('data/extra/labels.csv', 
+                       stringsAsFactors = FALSE)
+  
+  datasets <- list()
+  
+  for (paper_short in unique(label_df$paper_short)) {
+    
+    paper_csv  <- label_df$paper_csv[  which(label_df$paper_short == paper_short)[1] ]
+    paper_long <- label_df$paper_long[ which(label_df$paper_short == paper_short)[1] ]
+    
+    labels <- list()
+    
+    for (idx in which(label_df$paper_short == paper_short)) {
+      labels[[label_df$group[idx]]] <- label_df$label[idx]
+    }
+    
+    
+    df <- read.csv(sprintf('data/extra/%s.csv', paper_csv),
+                   stringsAsFactors = FALSE)
+    
+    datasets[[paper_short]] <- list('paper'  = paper_long,
+                                    'data'   = df,
+                                    'labels' = labels)
+    
+  }
+  
+  return(datasets)
+  
+}
+
+
+bindExtraData <- function() {
+  
+  datasets <- getAllExtraData()
+  
+  alldata <- NA
+  
+  for (dataset in datasets) {
+    
+    #print(dataset$paper)
+    
+    subdf <- dataset[['data']]
+    
+    subdf <- subdf[,c('group','participant','rotation','adaptation','adaptation_sd','explicit','explicit_sd','implicit','implicit_sd','explicit.method')]
+    
+    subdf$paper <- dataset[['paper']]
+    subdf$grouplabel <- dataset[['labels']][subdf$group]
+    
+    if (is.data.frame(alldata)) {
+      alldata <- rbind(alldata, subdf)
+    } else {
+      alldata <- subdf
+    }
+    
+  }
+  
+  for (colname in names(alldata)) {
+    alldata[,colname] <- unlist(alldata[,colname])
+  }
+  
+  agg_group_avg_adaptation <- aggregate(adaptation ~ grouplabel, data=alldata, FUN=mean)
+  
+  group_avg_adaptation <- unlist(agg_group_avg_adaptation$adaptation)
+  names(group_avg_adaptation) <- unlist(agg_group_avg_adaptation$grouplabel)
+  
+  alldata$group_adaptation <- group_avg_adaptation[alldata$grouplabel]
+  
+  return(alldata)
+  
+}
