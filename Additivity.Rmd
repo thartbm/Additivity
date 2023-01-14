@@ -56,7 +56,7 @@ This RStudio Project uses `renv` in an attempt to make sure the same (versions o
 Then we access all our custom functions:
 
 ```{r}
-# this is for (pre)processing the raw data:
+# this is for (pre)processing the raw data, and importing the external data:
 source('R/process.R')
 
 # this function provides access to demographics about the participants:
@@ -164,10 +164,42 @@ We want to only use the direct measure of explicit adaptation here, so we are re
 
 Fitting a single distribution (two parameter model) is worse than fitting a bi-modal distribution (four parameter model, AIC-based log-likelihood < .001), so we split the aiming participants in two groups. The centres of the two Gaussians used in this model (dashed black line in panel A) to are close to the means in the instructed group and the control group, so we will call them "aware aimers" (N=9) and "unaware aimers" (N=15), and split them by assigning them to the two groups by how high the relative likelihood is that they fall in one group or the other given the include-exclude difference score.
 
+A second issue here is that the two-rate model might need a different perturbation schedule, so we tested if parameters can be recovered reasonably well from simulated data, based on the control group's reach deviations and SD (1k bootstraps). The 95% confidence interval of the means includes the original parameter value for all 4, which shows that (at least on the group level) parameters can be recovered reasonably well.
+
 We fit the two-rate model on the average reach deviations in each of the two sub-groups, and then compare their fast process with the 95% confidence interval of the aiming responses; if they both correspond to explicit adaptation, they should be the same. We also compare their slow process with the confidence interval of the exclude-strategy reach aftereffects; if these both correspond to implicit adaptation, they should also be the same.
 
+They are not the same however, showing that a model with a strong additivity assumption is not suitable to predict explicit and implicit adaptation.
 
+(We can also test if the slow process predicts implicit adaptation in the control group (it doesn't). In the instructed group however, the instructions in between the aligned and rotated part of the task cause a discontinuity in responses that can't be handles by the standard two-rate model.)
 
+# External data
+
+So far we have only looked at 1 single experiment, and in that data set, additivity does not seem to hold. But is this a general principle that would apply to most, if not all, adaptation research? So we set out to collect a few other data sets from a variety of labs, with different equipment, tasks, research questions but in all cases there were measures of implicit adaptation (strategy exlcusion open-loop reaches) and some measure of explicit adaptation (either aiming, or PDP difference scores).
+
+We try the 'strict additivity' and 'loose additivity' from above, and plot the slope plus confidence interval for each of the 35 subgroups.
+
+```{r fig.height=8, fig.width=4}
+  fig5_ExtraData()
+```
+Strict additivity can not be confirmed in any subgroup, according to our criterion, and loose additivity only in 6/35 cases (purple circles+lines on the right side). This means that additivity usually does not hold in a hopefully representative sample of data from the field.
+
+# Alternative explanations
+
+We also test a few other possibilities on this data. First, we plot all the normalized implicit over explicit adaptation, and then two other possible mechanisms.
+
+```{r fig.width=8, fig.height=3}
+fig6_Relations()
+```
+
+In panel A, the data is all over the place, in line with the previous figure. We have nevertheless added trends to panel A for rotations that have more than 100 participants (30, 45 and 60 degrees). For 30 and 45 degrees, the relationship might be more or less linear (though not additive) but the 60 degree group shows a different pattern, which we explore in panel B. We compare a linear model (organge line), with a capped fraction model, that assumes that implicit is a given fraction of what is left from total adaptation after we subtract explicit adaptation, but put a maximum on implicit adaptation as well. This alternative model works better than a linear regression (both have 2 parameters) but the spread in the data is very large, so neither is a really good model.
+
+We also try a maximum likelihood estimate (MLE) in panel C (blue line) and compare it with simple additivity (red line). To fit the maximum likelihood model, we need reaonably reliable estimates of variance of both explicit and implicit adaptation, and this is only available in 127 participants. These two models have an identical form, but in MLE the wieghts of implicit and explicit are determined by their relative reliability, whereas in the additive case, the weights are just 1. In loose additivity, the weights are picked to best predict adptation, so since this did not explain adaptation sufficiently, it should perhaps not be surprising that the two more restricted models each don't seem to do a very good job either.
+
+# Conclusion
+
+We think that given our other analyses, it is unlikely that additivity holds in adaptation. Neither of our two alternatives provide a satisfactory explanation for how (measures of) explicit and implicit adaptation are combined when shaping behavior either. So we are left with a question to the field: what is the mechanism by which different adaptation or learning processes or combined when shaping behavior?
+
+In the meantime, when we want to study implicit and/or explicit adaptation, we should use independent measures: measures that do not rely on the additivity assumption.
 
 ```{r}
 for (target in c('svg', 'pdf')) {
