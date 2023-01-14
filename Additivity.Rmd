@@ -8,7 +8,6 @@ csl: plos.csl
 link-citations: yes
 ---
  
-
 In this document we pre-process and analyze data and make figures for a project where we tested the presumed additivity of implicit and explicit motor adaptation. First we did an experiment with 3 groups of participants that performed motor adaptation in conditions with the same rotation to adapt to, but designed to evoke different levels of explicit adaptation. Then we collected data from a set of other studies, and tested additivity in that data as well.
 
 In our experiment, the first two groups got either no additional information (control group) or they got an instruction that explained the perturbation and how to counter it, and these participants would only do the rotated phase of the task once they demonstrated they understood how to counter the rotation (instructed group). The third group did not get an instruction, but before every reach training trials they were asked to orient an arrow in the direction they were planning to move their hand in order to get the cursor to the target. The idea was that asking participants to think really hard on where they would move their hand relative to the target, might cue them in on the fact that aiming your hand somewhere other than the target might be the way to optimally do the task. In effect, this would act like instructions such as used in other studies [@Werner2015; @Modchalingam2019], and in the instructed group here.
@@ -41,7 +40,7 @@ All the raw data for this project is available from OSF. We can use a `Reach` fu
 
 ```{r}
 datalist <- list()
-datalist[['\\']] <- c('aiming.zip', 'control.zip', 'instructed.zip', 'demographics.csv', 'external_data.csv')
+datalist[['\\']] <- c('aiming.zip', 'control.zip', 'instructed.zip', 'demographics.csv', 'extra.zip')
 Reach::downloadOSFdata(repository='kr5eh',
                        filelist=datalist,
                        folder='data',
@@ -50,7 +49,7 @@ Reach::downloadOSFdata(repository='kr5eh',
                        removezips=TRUE)
 ```
 
-There should now be 4 subfolders in the 'data' directory (one for each of the 3 group, and one for extra data from a study by Modchalingam) as well as file called 'demographics.csv' with information about the participants.
+There should now be 4 subfolders in the 'data' directory: one for each of the 3 groups in our experiment, with full data sets, and a folder for the external data with preprocessed data. There should also be a file called 'demographics.csv' with information about the participants in our experiment.
 
 This RStudio Project uses `renv` in an attempt to make sure the same (versions of) packages are used here as we used when we originally wrote the scripts (a few years ago, really). This probably took some time when starting this up. It also means that all those packages are installed in the project folder, so after being done with the project, you might want to free up some disk space by removing it.
 
@@ -91,20 +90,16 @@ Apart from the folders with raw data, there should now be a lot of other csv fil
 
 Let's have a look at the overall learning (or 'adaptation') and the aiming responses over time:
 
-```{r fig.width=8, fig.height=4}
-fig3_Learning()
+```{r fig.width=8, fig.height=6}
+fig3_Learning_PointEstimates()
 ```
 
 
 # Additivity
 
-Now the main plot, that shows the data we base our statistics on:
+We will now do statistics on the values depicted in panel B.
 
-```{r  fig.width=8, fig.height=4}
-fig4_Additivity()
-```
-
-The level of adaptation is estimated for every participant as the reach deviations in the last block of 8 trials at the and of the first set of 96 rotated trials minus the reach deviations in the last block of 8 trials in the first set of 32 aligned trials. We can then look for differences in the level of adaptation between the groups using a one-factor ANOVA:
+The level of adaptation is estimated for every participant as the reach deviations in the last three block of 8 trials before each set of no-cursor blocks in the rotated part, minus the reach deviations in the last three blocks of 8 trials before each set of no-cursor blocks in the aligned part. We can then look for differences in the level of adaptation between the groups using a one-factor ANOVA:
 
 
 ```{r}
@@ -133,19 +128,13 @@ There is an effect of group on explicit adaptation (F(2,69)=17.56, p<.001, ges=.
 knitr::kable(explicitPostHoc())
 ```
 
-Looks to me like these are not corrected for multiple comparisons, but it also looks to me like this will not matter much. We find the  we can't reject the null hypothesis that explicit adaptation is the same in the aiming and the control group (t-ratio(df=69)=1.53, p=0.28). There are differences between the instructed group and both the aiming (t-ratio(69)=-4.19, p<.001) and the control group (t-ratio(69)=-5.72, p<.001).
+We find that we can't reject the null hypothesis that explicit adaptation is the same in the aiming and the control group (t-ratio(df=69)=1.53, p=0.28). There are differences between the instructed group and both the aiming (t-ratio(69)=-4.19, p<.001) and the control group (t-ratio(69)=-5.72, p<.001).
 
-**Of course, this difference measure between include and exclude strategy no-cursor reach deviations suffers from the same weakness that we are investigating here: it assumes that explicit and implicit adaptation are literally added by the brain AND that this is measured adequately in the include strategy conditions AND that the exlcude strategy condition gives us a good measure of implicit adaptation. All of these (largely untested) assumptions need to be true for this difference measure to make sense.**
-
-Bromberg (and Donchin): eye-movement measures don't add up either.
+Of course, this difference measure between include and exclude strategy no-cursor reach deviations suffers from the same weakness that we are investigating here: it assumes that explicit and implicit adaptation are literally added by the brain AND that this is measured adequately in the include strategy conditions AND that the exclude strategy condition gives us a good measure of implicit adaptation. All of these (largely untested) assumptions need to be true for this difference measure to make sense. So we'll test that.
 
 # Explicit measure
 
-Apart from the difference between include and exclude strategy no-cursor reaches as a measure of explicit adaptation, we also have re-aiming responses - of course only for the aiming group. Re-aiming responses seem like a valid measure of explicit adaptation, and are certainly used more than the difference between two kinds of Process Dissociation Procedure no-cursor reach deviations. So we can test how well the two match each other. Let's have a look at a scatter plot that shows the difference measure over the re-aiming responses:
-
-```{r fig.width=8, fig.height=4}
-fig5_Explicit()
-```
+Apart from the difference between include and exclude strategy no-cursor reaches as a measure of explicit adaptation, we also have re-aiming responses - of course only for the aiming group. Re-aiming responses seem like a valid measure of explicit adaptation, and are certainly used more than the difference between two kinds of Process Dissociation Procedure no-cursor reach deviations. So we can test how well the two match each other. This is depicted in panel C of the above figure.
 
 We test how well aiming responses, as a direct measure of explicit adaptation, predict the include-exclude difference, an indirect measure of explicit adaptation with a linear regression:
 
@@ -153,27 +142,32 @@ We test how well aiming responses, as a direct measure of explicit adaptation, p
 explicitRegression()
 ```
 
-The intercept (2.2 degrees) does not contribute (t=1.59, p=0.13), but the re-aiming response does (t=4.69, p<.001) with a slope of 0.945.
+The intercept (2.2 degrees) does not contribute (t=1.59, p=0.13), but the re-aiming response does (t=4.69, p<.001) with a slope of 0.945. The R-squared is moderate though.
 
 This means that at least in this task and this sample, there is fairly good agreement between the difference measure and the re-aiming responses. While this will need to be confirmed in different tasks and conditions, for now we interpret this to mean that the difference measure is also a reasonable estimate for explicit adaptation in the control and instructed group.
 
-This is NOT in line with Maresch, Werner and Donchin (EJN, 2020).
-
-In the scatterplot we can see there is quite some variability in both measures, with a cluster of participants showing almost no explicit adaptation according to the re-aiming measure, as well as according to the difference measure. For a visual comparison we show average and median of the difference measure for each group, as well as the individual participants (bar graphs and dots) and a kernel density estimate of the distribution. For the control group and the instructed group this looks like a uni-modal distribution, but for the aiming group this looks bi-modal. In particular, the two peaks of this bi-modal distribution seem to be close to the peaks in the two other groups. This suggests that the participants in the re-aiming group can be categorized as being aware of, understanding the rotation and having developed an explicit strategy to counter it, which makes them similar to the participants in the instructed group, or not aware of and hence not understanding or strategically countering the rotation.
-
-We can directly test this. We fit a bi-modal distribution to the difference scores in the aiming group, with 5 parameters: a mean and standard deviation for each of the two peaks, and a fraction f [0,1] to multiply probability densities in the one curve and 1/f to multiply probability densities in the other curve. This is fitted to the difference scores in the aiming group, and we will call this the custom-fit model.
-
-First, the standard deviations in the control and instructed groups are much larger than in the aiming group's 2 peaks, perhaps this means that even in the control and instructed groups, people are not exclusively learning either without awareness and strategy (control) or with awareness and strategy (instructed). But, we can compare the means and the fraction of people in either group as determined by normal probability densities from the control and instruction groups or the two distributions fitted to the aiming groups' data.
-
-First, the lower peak in the fitted model (2.3 degrees) is actually higher than the mean of the control groups' difference measure (0.35 degrees; t(23)=2.38, p=.026). However the higher peak from the model (14.9 degrees) is not different from mean of the instructed groups' difference scores (15.4 degrees; t(23)=0.199, p=.843). The fraction of data that the fitted model puts in the lower curve is 0.624, and seperating the aiming participants based on which normal probability density functions is more likely (instructed or control difference scores) puts 15/25 = 0.625 participants in the lower peak, which is not different (binomial exact test: p=1.00). As might be expected, the same 15 participants are put in the lower peak, and the same 9 in the higher peak. In short, this simple model is not in complete agreement with the data, but it does seem to capture some of the dynamics.
-
-We could now also look at the time course of aiming responses of participants in the lower peak (n=15) and the participants in the higher peak (n=9). As a second step, it would be nice if we could see if aiming responses coincide with the fast process of a two-rate model. As a simplification, we could assume that during the PDP no-cursor trials, there is no error feedback to learn from, but there is decay. This is not as good as having actual error-clamp trials, but since we have two top-up periods of 16 trials, that could still work out. If the exclude strategy no-cursor trials measure implicit adaptation, then we could fit an additional model where the slow process has to match the no-cursor trials, and this could also be applied to the control group.
-
-Let's first plot the aiming responses splitted by peak.
+This is NOT in line with Maresch, Werner and Donchin (EJN, 2020), and indeed a weak part of the study.
 
 
+>>> well then...
 
-Note that the equations for the two models are exactly equal, the only difference is in how the parameters are determined. We then test if the likelihoods (sum of the log of the probability densities) in the mixture model are significantly worse then the likelihoods in the custom-fit model.
+# Two-rate model
+
+The fast and slow processed in the state-spave model of adaptation proposed by Smith et al. (2006) have been said to map onto explicit and implicit adaptation. This model also has a strong additivity assumption, but predicts a specific time-course for both the slow and fast process, and so would be different from the above tests that only look at one specific point in time when everything has saturated.
+
+```{r fig.width=8, fig.height=3}
+fig4_Awareness_TwoRate()
+```
+
+
+We want to only use the direct measure of explicit adaptation here, so we are restricted to the aiming group. There is variability in both measures of explicit adaptation, but it does look like it could be a bi-modal distribution. Since the fast process in the two-rate model might correspond to explicit adaptation, this means there could be different model fits and different processes, if there is a bi-modal distribution of explicit adaptation in the aiming group. We test this in the include-exclude difference scores, since we want to use the aiming responses later on.
+
+Fitting a single distribution (two parameter model) is worse than fitting a bi-modal distribution (four parameter model, AIC-based log-likelihood < .001), so we split the aiming participants in two groups. The centres of the two Gaussians used in this model (dashed black line in panel A) to are close to the means in the instructed group and the control group, so we will call them "aware aimers" (N=9) and "unaware aimers" (N=15), and split them by assigning them to the two groups by how high the relative likelihood is that they fall in one group or the other given the include-exclude difference score.
+
+We fit the two-rate model on the average reach deviations in each of the two sub-groups, and then compare their fast process with the 95% confidence interval of the aiming responses; if they both correspond to explicit adaptation, they should be the same. We also compare their slow process with the confidence interval of the exclude-strategy reach aftereffects; if these both correspond to implicit adaptation, they should also be the same.
+
+
+
 
 ```{r}
 for (target in c('svg', 'pdf')) {
