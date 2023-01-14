@@ -213,6 +213,7 @@ We think that given our other analyses, it is unlikely that additivity holds in 
 In the meantime, when we want to study implicit and/or explicit adaptation, we should use independent measures: measures that do not rely on the additivity assumption.
 
 ```{r}
+# this code outputs the figures in the paper:
 for (target in c('svg', 'pdf')) {
   fig1_Additivity(target=target)
   #fig 2 = methods figure, not made in R
@@ -220,10 +221,6 @@ for (target in c('svg', 'pdf')) {
   fig4_Awareness_TwoRate(target=target)
   fig5_ExtraData(target=target)
   fig6_Relations(target=target)
-  
-  # extra stuff:
-  #figA_slowControl(target=target)
-  #figB_fastInstructed(target=target)
 }
 ```
 
