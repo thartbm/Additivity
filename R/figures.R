@@ -1952,7 +1952,7 @@ fig1_Additivity <- function(target='inline') {
        adj=0)
   
   text(0,-0.05,
-       expression(paste(hat(I)[p], ' ~ ', beta[0], ' + ', beta[1], E[p]) ),
+       expression(paste(hat(I)[p], ' = ', beta[0], ' + ', beta[1], E[p]) ),
        cex=1.2,
        adj=0)
   
@@ -4313,8 +4313,8 @@ fig6_Relations <- function(target='inline') {
   
   legend(x=-0.4,y=2.4,
          legend=c(
-                  expression(paste(hat(A)[k], ' ~ ', E[k], ' + ', I[k], ' (additive)') ),
-                  expression(paste(hat(A)[k], ' ~ ', w['e,k'], E[k], ' + ', w['i,k'], I[k], ' (MLE)'))
+                  expression(paste(hat(A)[k], ' = ', E[k], ' + ', I[k], ' (additive)') ),
+                  expression(paste(hat(A)[k], ' = ', w['e,k'], E[k], ' + ', w['i,k'], I[k], ' (MLE)'))
                   ),
          col=cols.op,cex=1.0,bty='n',pch=16)
   
