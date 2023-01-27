@@ -750,7 +750,7 @@ getAllExtraData <- function() {
   for (paper_short in unique(label_df$paper_short)) {
     
     paper_csv  <- label_df$paper_csv[  which(label_df$paper_short == paper_short)[1] ]
-    paper_long <- label_df$paper_long[ which(label_df$paper_short == paper_short)[1] ]
+    paper_full <- label_df$paper_full[ which(label_df$paper_short == paper_short)[1] ]
     
     labels <- list()
     
@@ -762,7 +762,7 @@ getAllExtraData <- function() {
     df <- read.csv(sprintf('data/extra/%s.csv', paper_csv),
                    stringsAsFactors = FALSE)
     
-    datasets[[paper_short]] <- list('paper'  = paper_long,
+    datasets[[paper_short]] <- list('paper'  = paper_full,
                                     'data'   = df,
                                     'labels' = labels)
     
@@ -780,8 +780,6 @@ bindExtraData <- function() {
   alldata <- NA
   
   for (dataset in datasets) {
-    
-    #print(dataset$paper)
     
     subdf <- dataset[['data']]
     
