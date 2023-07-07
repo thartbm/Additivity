@@ -345,11 +345,14 @@ fractionLeft <- function(par, df) {
 
 # maximum likelihood estimate -----
 
-MLE_adaptation <- function() {
+MLE_adaptation <- function(methods=c('aim.reports'), df=NULL) {
   
-  df <- read.csv('data/external_data.csv', stringsAsFactors = F)
+  # df <- read.csv('data/external_data.csv', stringsAsFactors = F)
   
-  df <- df[df$explicit.method=='aim.reports' & !is.na(df$explicit_sd),]
+  if (is.null(df)) {
+    df <- bindExtraData(methods=methods)
+    df <- df[!is.na(df$explicit_sd),]
+  }
   
   df$implicit_sd <- df$implicit_sd + 10^-10
   df$explicit_sd <- df$explicit_sd + 10^-10
@@ -875,28 +878,28 @@ scaled_components_MSE <- function(par, df) {
 
 # additivity recovery -----
 
-simulatedAdditivity <- function(bootstraps=5000, N=24, normalize=FALSE) {
+simulatedAdditivity <- function(bootstraps=5000, N=24, normalize=FALSE, std=5, returnData=TRUE) {
   
   # run this on the aiming group for now:
   
   #N          <- 24
   #bootstraps <- 5000
   
-  set.seed(1)
+  # set.seed(1)
   
   # implicit <- matrix( rnorm(n    = N*bootstraps,
   #                           mean = 15,
   #                           sd   = 5), nrow=bootstraps, ncol=N)
   explicit <- matrix( rnorm(n    = N*bootstraps,
                             mean = 20,
-                            sd   = 5), nrow=bootstraps, ncol=N)
+                            sd   = std), nrow=bootstraps, ncol=N)
   
   adaptation_noise <- matrix( rnorm(n    = N*bootstraps,
                                     mean = 0,
-                                    sd   = 5), nrow=bootstraps, ncol=N)
+                                    sd   = std), nrow=bootstraps, ncol=N)
   implicit_noise <- matrix( rnorm(n    = N*bootstraps,
                                   mean = 0,
-                                  sd   = 5), nrow=bootstraps, ncol=N)
+                                  sd   = std), nrow=bootstraps, ncol=N)
   
   # # ADDITIVITY:
   # adaptation <- implicit + explicit + adaptation_noise
@@ -946,14 +949,20 @@ simulatedAdditivity <- function(bootstraps=5000, N=24, normalize=FALSE) {
   
   print(mean(include1))
   
-  return(list('simulation'=data.frame(intercept,slope,exp_min,exp_max,lo,hi,include1),
-              'data'=list('implicit'=implicit,
-                          'explicit'=explicit,
-                          'adaptation'=adaptation)) )
+  if (returnData) {
+    return(list('simulation'=data.frame(intercept,slope,exp_min,exp_max,lo,hi,include1),
+                'data'=list('implicit'=implicit,
+                            'explicit'=explicit,
+                            'adaptation'=adaptation)) )
+  } else {
+    return(data.frame(intercept,slope,exp_min,exp_max,lo,hi,include1))
+  }
+  
 }
 
 plotAdditivityRecovery <- function(bootstraps=5000) {
   
+  set.seed(1)
   sim <- simulatedAdditivity(bootstraps=bootstraps,
                             N=24)
   df <- sim[['simulation']]
@@ -1030,5 +1039,39 @@ plotAdditivityRecovery <- function(bootstraps=5000) {
   axis(side=2,at=c(0,15,30,45))
   
   #dev.off()
+  
+}
+
+additivityNoiseSampleTradeOff <- function() {
+  
+  
+  Ns           <- c(5, 10, 20, 35, 60, 100)
+  noises       <- c(1, 3, 5, 7, 9, 11, 13, 15)
+  
+  grid <- expand.grid('N'=Ns,'std'=noises)
+  
+  grid$ci95span <- NA
+  grid$incl_1 <- NA
+  
+  set.seed(1)
+  
+  
+  for (idx in c(1:dim(grid)[1])) {
+    
+    sims <- simulatedAdditivity(bootstraps=10000, 
+                                N=grid$N[idx], 
+                                normalize=FALSE, 
+                                std=grid$std[idx],
+                                returnData=FALSE)
+    
+    grid$ci95span[idx] <- mean(sims$hi - sims$lo)
+    grid$incl_1[idx] <- mean(sims$include1)
+    
+    
+  }
+  
+  write.csv(grid, file='data/additivitySlopesSimulations.csv', quote=FALSE, row.names=FALSE)
+  
+  return(grid)
   
 }

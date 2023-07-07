@@ -806,6 +806,30 @@ plotAdditivitySimulations <- function() {
   
 }
 
+additivityNoiseSampleTradeOff <- function() {
+  
+  
+  Ns           <- c(5, 10, 20, 25, 40, 50, 100)
+  noises       <- c(1, 3, 5, 7, 9, 11, 13, 15)
+  
+  grid <- expand.grid('N'=Ns,'std'=noises)
+  
+  totalsamples <- 100000
+  
+  
+  
+  
+  for (idx in c(1:dim(grid)[1])) {
+    
+    
+    
+  }
+  
+  sims <- simulatedAdditivity(bootstraps=1000, N=24, normalize=FALSE, std=std)
+  
+  
+}
+
 
 # ODR -----
 
@@ -855,9 +879,7 @@ ODR_slope <- function(X,y=NULL,bootstraps=NA) {
 getTrendCI <- function(x, y, bootstraps = 1000, kernel, bandwidth, x.points) {
   
   idx <- sample(c(1:length(x)),size=length(x)*bootstraps,replace=TRUE)
-  #Xmat <- matrix( data = x[idx], nrow = bootstraps, ncol=length(x) )
-  #Ymat <- matrix( data = y[idx], nrow = bootstraps, ncol=length(y) )
-  
+
   mat <- array(data=NA, dim=c(bootstraps,length(x),2))
   mat[,,1] <- x[idx]
   mat[,,2] <- y[idx]
@@ -872,13 +894,16 @@ getTrendCI <- function(x, y, bootstraps = 1000, kernel, bandwidth, x.points) {
   CI <- apply(op,
               MARGIN=c(1),
               quantile,
-              probs=c(0.025,0.975))
+              probs=c(0.025,0.975),
+              na.rm=TRUE)
   
   return(CI)
   
 }
 
 getKsmoothY <- function(m,kernel,bandwidth,x.points) {
+  
+  # should we check for data within bounds?
   
   ks <- ksmooth(x=m[,1],y=m[,2],
                 kernel=kernel,

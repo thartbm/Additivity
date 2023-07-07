@@ -649,6 +649,7 @@ saveNoCursorData <- function() {
     
     write.csv(ndf[['all']], sprintf('data/%s-nocursors-all.csv',group), quote=FALSE, row.names=FALSE)
     write.csv(ndf[['blocks']], sprintf('data/%s-nocursors-blocks.csv',group), quote=FALSE, row.names=FALSE)
+    write.csv(ndf[['trials']], sprintf('data/%s_nocursors-trials.csv',group), quote=FALSE, row.names=FALSE)
     
   }
   
@@ -737,13 +738,93 @@ getNoCursors <- function(df,FUN=median) {
   
 }
 
+
+plotNoCursorDecays <- function() {
+  
+  layout(matrix(c(1:18),ncol=3,nrow=6,byrow=TRUE))
+  par(mar=c(2.5,4,0.5,0.1))
+  
+  for (group in c('control','instructed','aiming')) {
+    
+    df <- read.csv(sprintf('data/%s.csv',group), stringsAsFactors = FALSE)
+    
+    # keep only the no-cursor reaches:
+    df <- df[which(df$cursor == FALSE),]
+    
+    # calculate a per-participant baseline bias:
+    baselines <- aggregate(reachdeviation_deg ~ participant, data=df[which(df$strategy == 'none'),], FUN=median, na.rm=TRUE)
+    
+    # remove the bias:
+    for (participant in baselines$participant) {
+      df$reachdeviation_deg[which(df$participant == participant)] - baselines$reachdeviation_deg[which(baselines$participant == participant)]
+    }
+    
+    #rotated blocks:
+    # 1: trials 185 - 200
+    # 2: trials 217 - 232
+    # 3: trials 249 - 264
+    
+    blocks <- list('1'=c(185:192),
+                   '2'=c(193:200),
+                   '3'=c(217:224),
+                   '4'=c(225:232),
+                   '5'=c(249:256),
+                   '6'=c(257:264))
+    
+    # include_first <- df$participant[which(df$trial == 185 & df$strategy == 'include')]
+    # exclude_first <- df$participant[which(df$trial == 185 & df$strategy == 'exclude')]
+    
+    for (strategy in c('exclude','include')) {
+      
+      subdf <- df[which(df$strategy == strategy),]
+      
+      for (superblock in c(1:3)) {
+        
+        blocknos <- list('1'=c(1,2),'2'=c(3,4),'3'=c(5,6))[[sprintf('%d',superblock)]]
+        
+        first <- blocks[[sprintf('%d',blocknos[1])]][1]
+        
+        plot(-1000,-1000,
+             xlim=c((first-1),(first+16)), ylim=c(0,40),
+             main='',ax=F,bty='n',
+             xlab='trial',ylab='deviation [deg]')
+        
+        for (blockno_idx in c(1,2)) {
+          
+          blockno <- blocknos[blockno_idx]
+          
+          btc <- aggregate(reachdeviation_deg ~ trial, data=subdf[which(subdf$trial %in% blocks[[sprintf('%d',blockno)]]),], FUN=mean, na.rm=TRUE)
+          
+          lines(x=btc$trial,
+                y=btc$reachdeviation_deg)
+          
+          if (blockno == 1) {title(main=sprintf('%s, %s strategy',group,strategy), line = -1.,cex.lab=1)
+          }
+          
+        }
+        
+        axis(side=1,c(0,7)+first,las=2)
+        axis(side=1,c(8,15)+first,las=2)
+        axis(side=2,c(0,15,30))
+        
+        
+      }
+      
+    }
+    
+  }
+  
+}
+
 # External Data -----
 
 
-getAllExtraData <- function() {
+getAllExtraData <- function(methods=c('aim.reports','PDP.difference')) {
  
   label_df <- read.csv('data/extra/labels.csv', 
                        stringsAsFactors = FALSE)
+  
+  label_df <- label_df[which(label_df$explicit.method %in% methods),]
   
   datasets <- list()
   
@@ -757,7 +838,6 @@ getAllExtraData <- function() {
     for (idx in which(label_df$paper_short == paper_short)) {
       labels[[label_df$group[idx]]] <- label_df$label[idx]
     }
-    
     
     df <- read.csv(sprintf('data/extra/%s.csv', paper_csv),
                    stringsAsFactors = FALSE)
@@ -773,9 +853,9 @@ getAllExtraData <- function() {
 }
 
 
-bindExtraData <- function() {
+bindExtraData <- function(methods=c('aim.reports')) {
   
-  datasets <- getAllExtraData()
+  datasets <- getAllExtraData(methods=methods)
   
   alldata <- NA
   
