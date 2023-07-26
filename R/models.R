@@ -345,7 +345,7 @@ fractionLeft <- function(par, df) {
 
 # maximum likelihood estimate -----
 
-MLE_adaptation <- function(methods=c('aim.reports'), df=NULL) {
+MLE_adaptation <- function(methods=c('aim.reports'), df=NULL, weightsum=1) {
   
   # df <- read.csv('data/external_data.csv', stringsAsFactors = F)
   
@@ -357,8 +357,15 @@ MLE_adaptation <- function(methods=c('aim.reports'), df=NULL) {
   df$implicit_sd <- df$implicit_sd + 10^-10
   df$explicit_sd <- df$explicit_sd + 10^-10
   
-  w_i <- (1/(df$implicit_sd^2)) / ((1/(df$implicit_sd^2)) + (1/(df$explicit_sd^2)))
-  w_e <- (1/(df$explicit_sd^2)) / ((1/(df$implicit_sd^2)) + (1/(df$explicit_sd^2)))
+  # OPTIMAL SCALE:
+  # 1.438803
+  
+  # w_i <- (1.438803/(df$implicit_sd^2)) / ((1/(df$implicit_sd^2)) + (1/(df$explicit_sd^2)))
+  # w_e <- (1.438803/(df$explicit_sd^2)) / ((1/(df$implicit_sd^2)) + (1/(df$explicit_sd^2)))
+  
+  
+  w_i <- (weightsum/(df$implicit_sd^2)) / ((1/(df$implicit_sd^2)) + (1/(df$explicit_sd^2)))
+  w_e <- (weightsum/(df$explicit_sd^2)) / ((1/(df$implicit_sd^2)) + (1/(df$explicit_sd^2)))
   
   a_hat <- ((w_i * df$implicit) + (w_e * df$explicit))
   
@@ -705,7 +712,7 @@ fitMLEmodels <- function() {
   adapt <- mdf$adaptation/mdf$rotation
   add_one_MSE <- mean( (a_hat - adapt)^2 )
   #add_scaled_MSE <- offset_fit$value[1]
-  print(add_one_MSE)
+  # print(add_one_MSE)
   
   
   # additive model:
@@ -714,14 +721,14 @@ fitMLEmodels <- function() {
   lines(c(0,2),c(0,2),col='blue')
   
   
-  
+  # not an "offset" fit
   offset_fit <- optimx::optimx( par = par,
-                                fn = scaled_components_MSE, 
+                                fn = scaled_components_MSE,
                                 lower = c(10^-10),
                                 upper = c(3),
                                 method = 'L-BFGS-B',
                                 df = mdf )
-  
+  # 
   print(offset_fit)
   
   winpar <- c('s' = as.numeric(offset_fit$s[1]))
@@ -729,12 +736,12 @@ fitMLEmodels <- function() {
                                    df=mdf) / mdf$rotation
   adapt <- mdf$adaptation/mdf$rotation
   add_scaled_MSE <- mean( (a_hat - adapt)^2 )
-  #add_scaled_MSE <- offset_fit$value[1]
-  print(add_scaled_MSE)
+  add_scaled_MSE <- offset_fit$value[1]
+  # print(add_scaled_MSE)
   
   
   # additive model:
-  plot(a_hat, adapt, asp=1, main='additive scale=0.923',
+  plot(a_hat, adapt, asp=1, main=sprintf('additive scale=%0.3f',winpar),
        xlim=c(0,2),ylim=c(0,2))
   lines(c(0,2),c(0,2),col='blue')
 
@@ -752,13 +759,26 @@ fitMLEmodels <- function() {
                      'adaptation' = df$adaptation,
                      'rotation'   = df$rotation)
   
+  
+  a_hat <- scaled_components_model(par=c('s'=1),
+                                   df=mdf) / mdf$rotation
+  adapt <- mdf$adaptation/mdf$rotation
+  MLE_one_MSE <- mean( (a_hat - adapt)^2 )
+  
+  
+  
   a_hat <- scaled_components_model(par=c('s'=2),
                                    df=mdf) / mdf$rotation
   adapt <- mdf$adaptation/mdf$rotation
   MLE_two_MSE <- mean( (a_hat - adapt)^2 )
   
+  
+  
+  
+  
+  
   #MLE_scaled_MSE <- offset_fit$value[1]
-  print(MLE_two_MSE)
+  #print(MLE_two_MSE)
   
   # MLE model:
   plot(a_hat, adapt, asp=1, main='MLE scale=2',
@@ -779,29 +799,30 @@ fitMLEmodels <- function() {
   a_hat <- scaled_components_model(par=winpar,
                                    df=mdf) / mdf$rotation
   adapt <- mdf$adaptation/mdf$rotation
-  MLE_scaled_MSE <- mean( (a_hat - adapt)^2 )
   
   #MLE_scaled_MSE <- offset_fit$value[1]
-  print(MLE_scaled_MSE)
+  MLE_scaled_MSE <- mean( (a_hat - adapt)^2 )
+  # print(MLE_scaled_MSE)
   
   # MLE model:
-  plot(a_hat, adapt, asp=1, main='MLE scale=1.440',
+  plot(a_hat, adapt, asp=1, main=sprintf('MLE scale=%0.3f',winpar),
        xlim=c(0,2),ylim=c(0,2))
   lines(c(0,2),c(0,2),col='blue')
 
     
   MSE <- c( 
-            'additive one'    = add_one_MSE,
-          #  'additive scaled' = add_scaled_MSE,
-            'MLE two'         = MLE_two_MSE
-          #  'MLE scaled'      = MLE_scaled_MSE
+            'additive s=1'    = add_one_MSE,
+            # 'additive scaled' = add_scaled_MSE,
+            'MLE s=1'         = MLE_one_MSE,
+            'MLE s=2'         = MLE_two_MSE
+        #    'MLE scaled'      = MLE_scaled_MSE
             )
   
   AICs <- AICc(MSE = MSE, 
-           #    k   = c(10^-10,1,10^-10,1), 
-               k   = c(10^-10,10^-10),
-               N   = 127)
+               k   = c(10^-10,10^-10,10^-10),
+               N   = 387)
   
+  print(MSE)
   print(AICs)
   print(relativeLikelihood(AICs))
   
