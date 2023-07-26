@@ -6038,15 +6038,15 @@ fig7_Relations_too <- function(target='inline') {
   
   # set up files, if any:
   if (target=='svg') {
-    svglite::svglite(file='doc/Fig7_relations.svg', width=8, height=6, fix_text_size = FALSE)
+    svglite::svglite(file='doc/Fig7_relations.svg', width=8, height=4, fix_text_size = FALSE)
   }
   if (target=='pdf') {
-    cairo_pdf(filename='doc/Fig7_relations.pdf', width=8, height=6)
+    cairo_pdf(filename='doc/Fig7_relations.pdf', width=8, height=4)
   }
   
   # set up global plot parameters:
-  layout(mat=matrix(c(1:6),
-                    nrow=2,ncol=3,
+  layout(mat=matrix(c(1:2),
+                    nrow=1,ncol=2,
                     byrow = TRUE))
   
   par(mar=c(3.1,3.1,0.1,0.1))
@@ -6068,16 +6068,17 @@ fig7_Relations_too <- function(target='inline') {
   df$col.tr <- pal.tr[(((df$rotation-min(df$rotation))/diff(range(df$rotation)))*255)+1]              # 2) interpolate numbers
   df$col.op <- pal.op[(((df$rotation-min(df$rotation))/diff(range(df$rotation)))*255)+1]              # 2) interpolate numbers
   
-  # get colors for aiming/PDP
-  solidcolors =  c(rgb(229, 22,  54,  255, max = 255), # red
-                   rgb(136, 153, 255, 255, max = 255)) # blue
-  transcolors =  c(rgb(229, 22,  54,  47,  max = 255), 
-                   rgb(136, 153, 255, 47,  max = 255))
   
   # normalize by individual adaptation
   norm.var <- unlist(df$adaptation)
   df$norm.expl <- df$explicit/norm.var
   df$norm.impl <- df$implicit/norm.var
+  
+  
+  solidcolors =  c(rgb(229, 22,  54,  255, max = 255), 
+                   rgb(136, 153, 255, 255, max = 255))
+  transcolors =  c(rgb(229, 22,  54,  47,  max = 255), 
+                   rgb(136, 153, 255, 47,  max = 255))
   
   
   # # # # # # # # # # 3 # # 
@@ -6091,10 +6092,10 @@ fig7_Relations_too <- function(target='inline') {
   title(xlab='aiming/adaptation',line=2)
   title(ylab='exclusion/adaptation',line=2)
   
-  text(-0.2,1.15,'A: aiming reports', font.main=1, cex=1.35*1.5, adj=0)
+  text(-0.2,1.15,'A: aiming reports', font.main=1, cex=1.35*1.5, adj=c(0,0.5))
   
   lines(c(0,0,1.1),c(1.1,0,0),col='#999999',lw=1,lty=1)
-  lines(c(-0.1,1.1),c(1.1,-0.1),col='#000000',lw=1,lty=1)
+  lines(c(-0.1,1.1),c(1.1,-0.1),col='#999999',lw=1,lty=1)
   
   # plot stuff with aiming reports
   
@@ -6104,7 +6105,7 @@ fig7_Relations_too <- function(target='inline') {
   
   
   # 
-  X = seq(-0.1,1.1,0.01)  
+  # X = seq(-0.1,1.1,0.01)  
   # 
   # trendCI <- getTrendCI(x = aim.df$norm.expl,
   #                       y = aim.df$norm.impl,
@@ -6128,54 +6129,35 @@ fig7_Relations_too <- function(target='inline') {
   
   addRegression(x=aim.df$norm.expl[idx],
                 y=aim.df$norm.impl[idx],
-                col='#999999',pch=NULL,alpha=34,cex=1)
+                col=solidcolors[1],pch=NULL,alpha=34,cex=1)
+  
+  rotations <- sort(unique(aim.df$rotation))
+  lcols <- c()
+  lNs <- c()
+  for (r in rotations) {
+    lcols <- c(lcols, aim.df$col.op[which(aim.df$rotation == r)[1]])
+    lNs <- c(lNs, length(which(aim.df$rotation == r)))
+  }
+  
+  legend( x = 0.6,
+          y = 1.0575,
+          legend = sprintf('%d° (N=%d)',rotations, lNs),
+          bty='n',
+          box.col = '#FFFFFFCC',
+          pch=16,
+          col=lcols)
   
   axis(1,at=c(0,1))
   axis(2,at=c(0,1))
   
   
+  # # # # # # # # # # # # # #
   
-  plot(-1000,-1000,xlim=c(-0.2,1.2),ylim=c(-0.2,1.2),
-       main='',xlab='',ylab='',
-       bty='n',ax=F)
-  
-  title(xlab='(measure)/adaptation',line=2)
-  title(ylab='relative density',line=2)
-  
-  text(-0.2,1.15,'B: distributions', font.main=1, cex=1.35*1.5, adj=0)
-  
-  # weights for rotations:
-  rotweights <- 1/(table(aim.df$rotation)/dim(aim.df)[1])
-  aim.df$weight.rot <- rotweights[as.character(aim.df$rotation)]
-  aim.df$weight.rot <- aim.df$weight.rot / sum(aim.df$weight.rot)
-  
-  for (var_idx in c(1,2)) {
-    
-    if (var_idx == 1) {dvar <- aim.df$norm.expl}
-    if (var_idx == 2) {dvar <- aim.df$norm.impl}
-    dens <- density(dvar, n=length(X), from=min(X), to=max(X), weights=aim.df$weight.rot)
-    col.op <- solidcolors[var_idx]
-    col.tr <- transcolors[var_idx]
-    
-    dx <- dens$x
-    #dy <- (dens$y / max(dens$y)) * 0.8
-    dy <- dens$y/2
-    
-    polygon(x= c(min(dx),dx,max(dx)),
-            y= c(0,dy,0),
-            border=NA,
-            col=col.tr)
-    
-    lines(x = dx, y=dy, col=col.op)
-    
-  }
-  
-  legend(0,1,legend=c('explicit (aiming)','implicit (exlcusion)'),col=solidcolors,lty=1,cex=1.0,bty='n',)
-  
-  axis(1,c(0,1))
-  axis(2,c(0,0.5,1),labels = c('0','1','2'))
-  
-  
+  # get colors for aiming/PDP
+  solidcolors =  c(rgb(229, 22,  54,  255, max = 255), # red
+                   rgb(136, 153, 255, 255, max = 255)) # blue
+  transcolors =  c(rgb(229, 22,  54,  47,  max = 255), 
+                   rgb(136, 153, 255, 47,  max = 255))
   
   
   cols.op <- c()
@@ -6189,7 +6171,7 @@ fig7_Relations_too <- function(target='inline') {
   
   # text(-0.2,1.15,'E: distribution of measures', font.main=1, cex=1.35*1.5, adj=0)
   
-  text(-0.2,2.3,'C: models', font.main=1, cex=1.35*1.5, adj=0)
+  text(-0.4,2.3,'B: MLE model', font.main=1, cex=1.35*1.5, adj=c(0,0.5))
   lines(c(0,2),c(0,2),col='#999999',lw=1,lty=1)
   
   MLdf <- MLE_adaptation(df=aim.df)
@@ -6288,6 +6270,7 @@ fig7_Relations_too <- function(target='inline') {
   
   # print(anova(add.p2a, mle.p2a))
   
+  cat('MLE predictions:\n')
   print(pcoef)
   print(confint(mle.p2a,'predictions',level=0.95))
   
@@ -6296,8 +6279,8 @@ fig7_Relations_too <- function(target='inline') {
   
   legend(x=-0.4,y=2.2,
          legend=c(
-           expression(paste(hat(A)[k], ' = ', E[k], ' + ', I[k], ' (additive)') ),
-           expression(paste(hat(A)[k], ' = ', w['e,k'], E[k], ' + ', w['i,k'], I[k], ' (MLE)'))
+           expression(paste(hat(A)[p], ' = ', E[p], ' + ', I[p], ' (additive)') ),
+           expression(paste(hat(A)[p], ' = ', w['e,p'], E[p], ' + ', w['i,p'], I[p], ' (MLE)'))
          ),
          col=cols.op,cex=1.0,bty='n',pch=16)
   
@@ -6307,138 +6290,428 @@ fig7_Relations_too <- function(target='inline') {
   
   
   
-  # # # # # # # # # # 3 # # 
-  # PDP BASED DATA
-  
-  X = seq(-0.1,1.1,0.01)  
-  
-  
-  plot(-1000,-1000,xlim=c(-0.2,1.2),ylim=c(-0.2,1.2),
-       main='',xlab='',ylab='',
-       bty='n',ax=F,asp=1)
-  
-  title(xlab='PDP difference/adaptation',line=2)
-  title(ylab='exclusion/adaptation',line=2)
-  
-  text(-0.2,1.15,'D: PDP difference', font.main=1, cex=1.35*1.5, adj=0)
-  
-  lines(c(0,0,1.1),c(1.1,0,0),col='#999999',lw=1,lty=1)
-  lines(c(-0.1,1.1),c(1.1,-0.1),col='#000000',lw=1,lty=1)
-  
-  # plot stuff with PDP differences
-  
-  PDP.df <- df[which(df$explicit.method == 'PDP.difference'),]
-  
-  points(PDP.df$norm.expl, PDP.df$norm.impl, pch=16, col=df$col.tr, cex=1)
-  
-  idx <- which(PDP.df$norm.expl > -0.2 & PDP.df$norm.expl < 1.2 & PDP.df$norm.impl > -0.2 & PDP.df$norm.impl < 1.2)
-  
-  addRegression(x=PDP.df$norm.expl[idx],
-                y=PDP.df$norm.impl[idx],
-                col='#999999',pch=NULL,alpha=34,cex=1)
-  
-  
-  axis(1,c(0,1))
-  axis(2,c(0,1))
-  
-  
-  
-  plot(-1000,-1000,xlim=c(-0.2,1.2),ylim=c(-0.2,1.2),
-       main='',xlab='',ylab='',
-       bty='n',ax=F)
-  
-  title(xlab='exclusion/adaptation',line=2)
-  title(ylab='relative density',line=2)
-  
-  text(-0.2,1.15,'E: distributions', font.main=1, cex=1.35*1.5, adj=0)
-  
-  # weights for rotations:s
-  rotweights <- 1/(table(PDP.df$rotation)/dim(PDP.df)[1])
-  PDP.df$weight.rot <- rotweights[as.character(PDP.df$rotation)]
-  PDP.df$weight.rot <- PDP.df$weight.rot / sum(PDP.df$weight.rot)
-  
-  for (var_idx in c(1,2)) {
-    
-    if (var_idx == 1) {dvar <- PDP.df$norm.expl}
-    if (var_idx == 2) {dvar <- PDP.df$norm.impl}
-    dens <- density(dvar, n=length(X), from=min(X), to=max(X), weights=PDP.df$weight.rot)
-    col.op <- solidcolors[var_idx]
-    col.tr <- transcolors[var_idx]
-    lty <- 1
-    if (var_idx == 1) {
-      lty <- 2
-      col.tr <- NA
-    }
-    
-    dx <- dens$x
-    dy <- dens$y / 2
-    
-    polygon(x= c(min(dx),dx,max(dx)),
-            y= c(0,dy,0),
-            border=NA,
-            col=col.tr)
-    
-    print(lty)
-    
-    lines(x = dx, y=dy, col=col.op, lty=lty)
-    
-  }
-  
-  axis(1,c(0,1))
-  axis(2,c(0,0.5,1),labels = c('0','1','2'))
-  
-  legend(0,1,legend=c('explicit (PDP difference)','implicit (exlcusion)'),col=solidcolors,lty=c(2,1),cex=1.0,bty='n',)
-  
-
   if (target %in% c('svg','pdf')) {
     dev.off()
   }
   
-  all.df <- rbind(aim.df, PDP.df)
-  
-  # print(summary(lm(norm.impl ~ explicit.method * rotation, data=all.df, weights=weight.rot)))
-  # print(summary(lm(norm.expl ~ explicit.method * rotation, data=all.df, weights=weight.rot)))
-  
-  # print(aggregate(norm.impl ~ rotation + explicit.method, data=df, FUN=mean))
-  a.df <- aggregate(cbind(norm.expl, norm.impl) ~ rotation + explicit.method, data=df, FUN=mean)
-  
-  print(a.df)
-  
-  plot(-1000,-1000,xlim=c(-0.05,1.05),ylim=c(-0.2,1.7),
-       main='',xlab='',ylab='',
-       bty='n',ax=F)
-  
-  title(ylab='proportion of adaptation',line=2)
-  title(xlab='rotation',line=2)
-  
-  text(-0.05,
-       (1.15/diff(c(-0.2,1.2)))*diff(c(-0.2,1.7)),
-       'F: build-up', font.main=1, cex=1.35*1.5, adj=0)
-  
-  lines(x=c(-0.05, 1.05), y=c(1,1), lty=2, col='#999999')
-  
-  for (method.idx in c(1:2)) {
-  
-    for (rot.idx in c(1:4)) {
-      
-      rotation <- c(15,30,45,60)[rot.idx]
-      method   <- c('aim.reports','PDP.difference')[method.idx]
-      
-      impl <- a.df$norm.impl[which(a.df$explicit.method == method & a.df$rotation == rotation)]
-      expl <- a.df$norm.expl[which(a.df$explicit.method == method & a.df$rotation == rotation)]
-      
-      x <- ((method.idx-1)/2) + ((rotation-15)/100)
-      
-      print(x)
-      
-    }
-  
-  }
-  
-  axis(1, at=seq(0,0.45,0.15),c('15','30','45','60'))
-  axis(1, at=seq(0.55,1,0.15),c('15','30','45','60'))
-  
-  axis(2,at=c(0,0.5,1.0,1.5))
-  
 }
 
+# fig7_Relations_too <- function(target='inline') {
+#   
+#   # set up files, if any:
+#   if (target=='svg') {
+#     svglite::svglite(file='doc/Fig7_relations.svg', width=8, height=6, fix_text_size = FALSE)
+#   }
+#   if (target=='pdf') {
+#     cairo_pdf(filename='doc/Fig7_relations.pdf', width=8, height=6)
+#   }
+#   
+#   # set up global plot parameters:
+#   layout(mat=matrix(c(1:6),
+#                     nrow=2,ncol=3,
+#                     byrow = TRUE))
+#   
+#   par(mar=c(3.1,3.1,0.1,0.1))
+#   
+#   
+#   # get all data:
+#   df <- bindExtraData(methods=c('aim.reports', 'PDP.difference'))
+#   
+#   # make sure that each rotation is present for both aim and PDP subsets of data
+#   use_rotations <- as.numeric(names(which(apply(table(df$rotation, df$explicit.method) > 0, 1, all))))
+#   df <- df[which(df$rotation %in% use_rotations),]
+#   
+#   allrotations <- sort(unique(df$rotation))
+#   nrotations <- length(allrotations)
+#   
+#   # set up color pallet on all data
+#   pal.tr <- scales::viridis_pal(alpha=0.16, begin=0, end=1)(256)    # 1) choose colors
+#   pal.op <- scales::viridis_pal(alpha=1.0, begin=0, end=1)(256)    # 1) choose colors
+#   df$col.tr <- pal.tr[(((df$rotation-min(df$rotation))/diff(range(df$rotation)))*255)+1]              # 2) interpolate numbers
+#   df$col.op <- pal.op[(((df$rotation-min(df$rotation))/diff(range(df$rotation)))*255)+1]              # 2) interpolate numbers
+#   
+#   # get colors for aiming/PDP
+#   solidcolors =  c(rgb(229, 22,  54,  255, max = 255), # red
+#                    rgb(136, 153, 255, 255, max = 255)) # blue
+#   transcolors =  c(rgb(229, 22,  54,  47,  max = 255), 
+#                    rgb(136, 153, 255, 47,  max = 255))
+#   
+#   # normalize by individual adaptation
+#   norm.var <- unlist(df$adaptation)
+#   df$norm.expl <- df$explicit/norm.var
+#   df$norm.impl <- df$implicit/norm.var
+#   
+#   
+#   # # # # # # # # # # 3 # # 
+#   # AIMING BASED DATA
+#   
+#   
+#   plot(-1000,-1000,xlim=c(-0.2,1.2),ylim=c(-0.2,1.2),
+#        main='',xlab='',ylab='',
+#        bty='n',ax=F,asp=1)
+#   
+#   title(xlab='aiming/adaptation',line=2)
+#   title(ylab='exclusion/adaptation',line=2)
+#   
+#   text(-0.2,1.15,'A: aiming reports', font.main=1, cex=1.35*1.5, adj=0)
+#   
+#   lines(c(0,0,1.1),c(1.1,0,0),col='#999999',lw=1,lty=1)
+#   lines(c(-0.1,1.1),c(1.1,-0.1),col='#000000',lw=1,lty=1)
+#   
+#   # plot stuff with aiming reports
+#   
+#   aim.df <- df[which(df$explicit.method == 'aim.reports'),]
+#   
+#   points(aim.df$norm.expl, aim.df$norm.impl, pch=16, col=df$col.tr, cex=1)
+#   
+#   
+#   # 
+#   X = seq(-0.1,1.1,0.01)  
+#   # 
+#   # trendCI <- getTrendCI(x = aim.df$norm.expl,
+#   #                       y = aim.df$norm.impl,
+#   #                       bootstraps = 1000,
+#   #                       kernel='normal',
+#   #                       bandwidth = 0.25,
+#   #                       x.points=X)
+#   # # print('got trend')
+#   # polygon(x=c(X,rev(X)), y=c(trendCI[1,],rev(trendCI[2,])),col=transcolors[1],border=NA)
+#   # 
+#   # trends <- ksmooth(aim.df$norm.expl, aim.df$norm.impl,
+#   #                   kernel="normal",
+#   #                   bandwidth=0.25,
+#   #                   x.points=X)
+#   # 
+#   # lines(trends$x, trends$y, col=solidcolors[1])
+#   # 
+#   
+#   
+#   idx <- which(aim.df$norm.expl > -0.2 & aim.df$norm.expl < 1.2 &aim.df$norm.impl > -0.2 & aim.df$norm.impl < 1.2)
+#   
+#   addRegression(x=aim.df$norm.expl[idx],
+#                 y=aim.df$norm.impl[idx],
+#                 col='#999999',pch=NULL,alpha=34,cex=1)
+#   
+#   axis(1,at=c(0,1))
+#   axis(2,at=c(0,1))
+#   
+#   
+#   
+#   plot(-1000,-1000,xlim=c(-0.2,1.2),ylim=c(-0.2,1.2),
+#        main='',xlab='',ylab='',
+#        bty='n',ax=F)
+#   
+#   title(xlab='(measure)/adaptation',line=2)
+#   title(ylab='relative density',line=2)
+#   
+#   text(-0.2,1.15,'B: distributions', font.main=1, cex=1.35*1.5, adj=0)
+#   
+#   # weights for rotations:
+#   rotweights <- 1/(table(aim.df$rotation)/dim(aim.df)[1])
+#   aim.df$weight.rot <- rotweights[as.character(aim.df$rotation)]
+#   aim.df$weight.rot <- aim.df$weight.rot / sum(aim.df$weight.rot)
+#   
+#   for (var_idx in c(1,2)) {
+#     
+#     if (var_idx == 1) {dvar <- aim.df$norm.expl}
+#     if (var_idx == 2) {dvar <- aim.df$norm.impl}
+#     dens <- density(dvar, n=length(X), from=min(X), to=max(X), weights=aim.df$weight.rot)
+#     col.op <- solidcolors[var_idx]
+#     col.tr <- transcolors[var_idx]
+#     
+#     dx <- dens$x
+#     #dy <- (dens$y / max(dens$y)) * 0.8
+#     dy <- dens$y/2
+#     
+#     polygon(x= c(min(dx),dx,max(dx)),
+#             y= c(0,dy,0),
+#             border=NA,
+#             col=col.tr)
+#     
+#     lines(x = dx, y=dy, col=col.op)
+#     
+#   }
+#   
+#   legend(0,1,legend=c('explicit (aiming)','implicit (exlcusion)'),col=solidcolors,lty=1,cex=1.0,bty='n',)
+#   
+#   axis(1,c(0,1))
+#   axis(2,c(0,0.5,1),labels = c('0','1','2'))
+#   
+#   
+#   
+#   # # # # # # # # # # # # # #
+#   
+#   cols.op <- c()
+#   
+#   plot(-1000,-1000,xlim=c(-0.4,2.4),ylim=c(-0.4,2.4),
+#        main='',xlab='',ylab='',
+#        bty='n',ax=F,asp=1)
+#   
+#   title(xlab='predicted adaptation/rotation',line=2)
+#   title(ylab='measured adaptation/rotation',line=2)
+#   
+#   # text(-0.2,1.15,'E: distribution of measures', font.main=1, cex=1.35*1.5, adj=0)
+#   
+#   text(-0.2,2.3,'C: models', font.main=1, cex=1.35*1.5, adj=0)
+#   lines(c(0,2),c(0,2),col='#999999',lw=1,lty=1)
+#   
+#   MLdf <- MLE_adaptation(df=aim.df)
+#   
+#   # additive model:
+#   a_hat <- MLdf$explicit + MLdf$implicit
+#   
+#   # par <- c('offset'=0)
+#   mdf <- data.frame( 'a_hat'      = a_hat,
+#                      'adaptation' = MLdf$adaptation,
+#                      'rotation'   = MLdf$rotation)
+#   
+#   
+#   
+#   solidcolors =  c(rgb(229, 22,  54,  255, max = 255), 
+#                    rgb(136, 153, 255, 255, max = 255))
+#   transcolors =  c(rgb(229, 22,  54,  47,  max = 255), 
+#                    rgb(136, 153, 255, 47,  max = 255))
+#   col.op <- solidcolors[1]
+#   col.tr <- transcolors[1]
+#   cols.op <- c(cols.op, col.op)
+#   
+#   # predictions <- (a_hat+offset_fit$offset[1])/MLdf$rotation
+#   predictions <- a_hat/MLdf$rotation
+#   idx <- which(!is.na(predictions))
+#   predictions <- predictions[idx]
+#   adapt <- MLdf$adaptation[idx]/MLdf$rotation[idx]
+#   points(predictions, adapt, col=col.tr)
+#   
+#   
+#   at <- range(predictions)
+#   add.p2a <- lm(adapt ~ predictions)
+#   pcoef <- add.p2a$coefficients
+#   lines(at, pcoef[1]+(at*pcoef[2]), col=col.op)
+#   
+#   predict.points <- seq(at[1],at[2],length.out=40)
+#   
+#   ci <- predict( add.p2a,
+#                  newdata=data.frame(predictions=predict.points),
+#                  interval = "confidence")
+#   
+#   X <- c(predict.points,rev(predict.points))
+#   Y <- c(ci[,'lwr'],rev(ci[,'upr']))
+#   polygon(x=X,y=Y,col=col.tr,border=NA)
+#   
+#   # # print(summary(add.p2a))
+#   # print(pcoef)
+#   # print(confint(add.p2a,'predictions',level=0.95))
+#   
+#   # maximum likelihood model
+#   # a_hat <- MLdf$a_hat
+#   a_hat <- (2 * MLdf$w_explicit) + (2 * MLdf$w_implicit)
+#   
+#   idx <- which(!is.na(a_hat))
+#   
+#   # par <- c('offset'=0)
+#   mdf <- data.frame( 'a_hat'      = a_hat[idx],
+#                      'adaptation' = MLdf$adaptation[idx],
+#                      'rotation'   = MLdf$rotation[idx])
+#   
+#   
+#   col.op <- solidcolors[2]
+#   col.tr <- transcolors[2]
+#   cols.op <- c(cols.op, col.op)
+#   
+#   adapt <- MLdf$adaptation[idx]/MLdf$rotation[idx]
+#   predictions <- a_hat[idx]/MLdf$rotation[idx]
+#   points(predictions, adapt, col=col.tr)
+#   
+#   
+#   # MSE <- c('additive'=add_offset_MSE,
+#   #          'MLE'=MLE_offset_MSE)
+#   # 
+#   # AICs <- AICc(MSE = MSE,            # MSE goodness of fit
+#   #              k   = c(1,1),         # number of parameters (offset only)
+#   #              N   = dim(MLdf)[1])   # N observations (127 participants)
+#   # 
+#   # print(relativeLikelihood(AICs))
+#   
+#   # # # # #
+#   
+#   at <- range(predictions)
+#   mle.p2a <- lm(adapt ~ predictions)
+#   pcoef <- mle.p2a$coefficients
+#   lines(at, pcoef[1]+(at*pcoef[2]), col=col.op)
+#   
+#   predict.points <- seq(at[1],at[2],length.out=40)
+#   
+#   ci <- predict( mle.p2a,
+#                  newdata=data.frame(predictions=predict.points),
+#                  interval = "confidence")
+#   
+#   X <- c(predict.points,rev(predict.points))
+#   Y <- c(ci[,'lwr'],rev(ci[,'upr']))
+#   polygon(x=X,y=Y,col=col.tr,border=NA)
+#   
+#   # print(anova(add.p2a, mle.p2a))
+#   
+#   print(pcoef)
+#   print(confint(mle.p2a,'predictions',level=0.95))
+#   
+#   
+#   # # # # # 
+#   
+#   legend(x=-0.4,y=2.2,
+#          legend=c(
+#            expression(paste(hat(A)[k], ' = ', E[k], ' + ', I[k], ' (additive)') ),
+#            expression(paste(hat(A)[k], ' = ', w['e,k'], E[k], ' + ', w['i,k'], I[k], ' (MLE)'))
+#          ),
+#          col=cols.op,cex=1.0,bty='n',pch=16)
+#   
+#   axis(side=1,at=c(0,1,2))
+#   axis(side=2,at=c(0,1,2))
+#   
+#   
+#   
+#   
+#   # # # # # # # # # # 3 # # 
+#   # PDP BASED DATA
+#   
+#   X = seq(-0.1,1.1,0.01)  
+#   
+#   
+#   plot(-1000,-1000,xlim=c(-0.2,1.2),ylim=c(-0.2,1.2),
+#        main='',xlab='',ylab='',
+#        bty='n',ax=F,asp=1)
+#   
+#   title(xlab='PDP difference/adaptation',line=2)
+#   title(ylab='exclusion/adaptation',line=2)
+#   
+#   text(-0.2,1.15,'D: PDP difference', font.main=1, cex=1.35*1.5, adj=0)
+#   
+#   lines(c(0,0,1.1),c(1.1,0,0),col='#999999',lw=1,lty=1)
+#   lines(c(-0.1,1.1),c(1.1,-0.1),col='#000000',lw=1,lty=1)
+#   
+#   # plot stuff with PDP differences
+#   
+#   PDP.df <- df[which(df$explicit.method == 'PDP.difference'),]
+#   
+#   points(PDP.df$norm.expl, PDP.df$norm.impl, pch=16, col=df$col.tr, cex=1)
+#   
+#   idx <- which(PDP.df$norm.expl > -0.2 & PDP.df$norm.expl < 1.2 & PDP.df$norm.impl > -0.2 & PDP.df$norm.impl < 1.2)
+#   
+#   addRegression(x=PDP.df$norm.expl[idx],
+#                 y=PDP.df$norm.impl[idx],
+#                 col='#999999',pch=NULL,alpha=34,cex=1)
+#   
+#   
+#   axis(1,c(0,1))
+#   axis(2,c(0,1))
+#   
+#   
+#   
+#   plot(-1000,-1000,xlim=c(-0.2,1.2),ylim=c(-0.2,1.2),
+#        main='',xlab='',ylab='',
+#        bty='n',ax=F)
+#   
+#   title(xlab='exclusion/adaptation',line=2)
+#   title(ylab='relative density',line=2)
+#   
+#   text(-0.2,1.15,'E: distributions', font.main=1, cex=1.35*1.5, adj=0)
+#   
+#   # weights for rotations:s
+#   rotweights <- 1/(table(PDP.df$rotation)/dim(PDP.df)[1])
+#   PDP.df$weight.rot <- rotweights[as.character(PDP.df$rotation)]
+#   PDP.df$weight.rot <- PDP.df$weight.rot / sum(PDP.df$weight.rot)
+#   
+#   for (var_idx in c(1,2)) {
+#     
+#     if (var_idx == 1) {dvar <- PDP.df$norm.expl}
+#     if (var_idx == 2) {dvar <- PDP.df$norm.impl}
+#     dens <- density(dvar, n=length(X), from=min(X), to=max(X), weights=PDP.df$weight.rot)
+#     col.op <- solidcolors[var_idx]
+#     col.tr <- transcolors[var_idx]
+#     lty <- 1
+#     if (var_idx == 1) {
+#       lty <- 2
+#       col.tr <- NA
+#     }
+#     
+#     dx <- dens$x
+#     dy <- dens$y / 2
+#     
+#     polygon(x= c(min(dx),dx,max(dx)),
+#             y= c(0,dy,0),
+#             border=NA,
+#             col=col.tr)
+#     
+#     print(lty)
+#     
+#     lines(x = dx, y=dy, col=col.op, lty=lty)
+#     
+#   }
+#   
+#   axis(1,c(0,1))
+#   axis(2,c(0,0.5,1),labels = c('0','1','2'))
+#   
+#   legend(0,1,legend=c('explicit (PDP difference)','implicit (exlcusion)'),col=solidcolors,lty=c(2,1),cex=1.0,bty='n',)
+#   
+#   
+#   if (target %in% c('svg','pdf')) {
+#     dev.off()
+#   }
+#   
+#   all.df <- rbind(aim.df, PDP.df)
+#   
+#   # print(summary(lm(norm.impl ~ explicit.method * rotation, data=all.df, weights=weight.rot)))
+#   # print(summary(lm(norm.expl ~ explicit.method * rotation, data=all.df, weights=weight.rot)))
+#   
+#   # print(aggregate(norm.impl ~ rotation + explicit.method, data=df, FUN=mean))
+#   a.df <- aggregate(cbind(norm.expl, norm.impl) ~ rotation + explicit.method, data=df, FUN=mean)
+#   
+#   print(a.df)
+#   
+#   plot(-1000,-1000,xlim=c(-0.05,1.05),ylim=c(-0.2,1.7),
+#        main='',xlab='',ylab='',
+#        bty='n',ax=F)
+#   
+#   title(ylab='proportion of adaptation',line=2)
+#   title(xlab='rotation',line=2)
+#   
+#   text(-0.05,
+#        (1.15/diff(c(-0.2,1.2)))*diff(c(-0.2,1.7)),
+#        'F: build-up', font.main=1, cex=1.35*1.5, adj=0)
+#   
+#   lines(x=c(-0.05, 1.05), y=c(1,1), lty=2, col='#999999')
+#   
+#   for (method.idx in c(1:2)) {
+#     
+#     for (rot.idx in c(1:4)) {
+#       
+#       rotation <- c(15,30,45,60)[rot.idx]
+#       method   <- c('aim.reports','PDP.difference')[method.idx]
+#       
+#       impl <- a.df$norm.impl[which(a.df$explicit.method == method & a.df$rotation == rotation)]
+#       expl <- a.df$norm.expl[which(a.df$explicit.method == method & a.df$rotation == rotation)]
+#       
+#       x <- ((method.idx-1)/2) + ((rotation-15)/112.5) + (0.1 * (method.idx-1))
+#       print(x)
+#       
+#       polygon( x = c(-0.06,0.06,0.06,-0.06)+x,
+#                y = c( 0, 0, impl,impl),
+#                border=solidcolors[2],
+#                col=transcolors[2])
+#       polygon( x = c(-0.06,0.06,0.06,-0.06)+x,
+#                y = c( impl, impl, expl+impl,expl+impl),
+#                border=solidcolors[1],
+#                col=transcolors[1])
+#       
+#     }
+#     
+#   }
+#   
+#   legend(.6,1.5,c("explicit","implicit"),pch=22,bg=transcolors,col=solidcolors,cex=1,bty='n')
+#   
+#   axis(1, at= c(0,15,30,45)/112.5,     c('15','30','45','60'))
+#   axis(1, at=(c(0,15,30,45)/112.5)+0.6,c('15','30','45','60'))
+#   text(0.2,-0.1,'aiming')
+#   text(0.8,-0.1,'PDP')
+#   axis(2,at=c(0,0.5,1.0,1.5))
+#   
+# }
