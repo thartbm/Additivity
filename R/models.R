@@ -1,5 +1,8 @@
 # general ------
 
+library('future.apply')
+
+
 compareModels <- function(df) {
   
   # df <- bindExtraData()
@@ -968,7 +971,7 @@ simulatedAdditivity <- function(bootstraps=5000, N=24, normalize=FALSE, std=5, r
     
   }
   
-  print(mean(include1))
+  # print(mean(include1))
   
   if (returnData) {
     return(list('simulation'=data.frame(intercept,slope,exp_min,exp_max,lo,hi,include1),
@@ -1065,34 +1068,57 @@ plotAdditivityRecovery <- function(bootstraps=5000) {
 
 additivityNoiseSampleTradeOff <- function() {
   
-  
-  Ns           <- c(5, 10, 20, 35, 60, 100)
+  # Ns           <- c(5, 10, 20, 35, 60, 100)
+  Ns           <- c(5, 10, 24, 45, 70, 100)  # includes example based off own experiment
   noises       <- c(1, 3, 5, 7, 9, 11, 13, 15)
   
   grid <- expand.grid('N'=Ns,'std'=noises)
   
-  grid$ci95span <- NA
-  grid$incl_1 <- NA
-  
   set.seed(1)
   
+  # plan multisession with reasonable number of cores free
+  future::plan(multisession, workers=max(1, parallelly::availableCores() - 2))
   
-  for (idx in c(1:dim(grid)[1])) {
-    
-    sims <- simulatedAdditivity(bootstraps=10000, 
-                                N=grid$N[idx], 
-                                normalize=FALSE, 
-                                std=grid$std[idx],
-                                returnData=FALSE)
-    
-    grid$ci95span[idx] <- mean(sims$hi - sims$lo)
-    grid$incl_1[idx] <- mean(sims$include1)
-    
-    
-  }
+  # old, non-parallel version of code:
   
-  write.csv(grid, file='data/additivitySlopesSimulations.csv', quote=FALSE, row.names=FALSE)
+  # for (idx in c(1:dim(grid)[1])) {
+  #   
+  #   sims <- simulatedAdditivity(bootstraps=10000, 
+  #                               N=grid$N[idx], 
+  #                               normalize=FALSE, 
+  #                               std=grid$std[idx],
+  #                               returnData=FALSE)
+  #   
+  #   grid$ci95span[idx] <- mean(sims$hi - sims$lo)
+  #   grid$incl_1[idx] <- mean(sims$include1)
+  #   
+  #   
+  # }
+  
+  sims <- future_apply(grid,
+                       MARGIN = 1,
+                       FUN = futureSimAdditivityHelper,
+                       future.seed=TRUE)
+  
+  plan(sequential) # turn of multisession
+  
+  grid <- cbind(grid, do.call("rbind", sims) )
+  
+  write.csv(grid, file='data/additivitySlopesSimulations_3.csv', quote=FALSE, row.names=FALSE)
   
   return(grid)
   
 }
+
+
+futureSimAdditivityHelper <- function(parameters) {
+  
+  oneSim <- simulatedAdditivity(bootstraps=10000, N=parameters['N'], normalize=FALSE, std=parameters['std'], returnData=FALSE)
+  
+  ci95span <- mean(oneSim$hi - oneSim$lo)
+  incl_1 <- mean(oneSim$include1)
+  
+  return( data.frame(ci95span, incl_1) )
+  
+}
+
