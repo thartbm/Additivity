@@ -4770,38 +4770,411 @@ drawAdditivitySchematic <- function(angles_deg,
 
 # submission 2 - eNeuro -----
 
-fig1_3D_simulation_results <- function() {
+fig1_Additivity <- function(target='inline') {
+  
+  if (target=='svg') {
+    svglite::svglite(file='doc/Fig1_additivity.svg', width=8, height=5, fix_text_size = FALSE)
+  }
+  if (target=='pdf') {
+    cairo_pdf(filename='doc/Fig1_additivity.pdf', width=8, height=5)
+  }
+  
+  textsize <- 1.35
+  
+  layout(mat=matrix(c(1,2,3, 4,5,6),nrow=2,ncol=3,byrow=TRUE))
+  
+  groups <- getGroups()
+  
+  par(mar=c(3.5, 3.5, 0, 0.1))
+  
+  process <- c('implicit',  'explicit',  'adaptation')
+  col.op  <- c('#0000ffff', '#e51636ff', '#7f00d8ff' )
+  col.tr  <- c('#0000ff2f', '#e516362f', '#7f00d82f' )
+  cols <- data.frame(process, col.op, col.tr)
+  
+  # # # # # # # # # # # # # # # # # 
+  # A: rotation=45, adaptation=40, implicit=20, explicit=20
+  
+  plot(-1000, -1000,
+       main='', xlab='', ylab='', 
+       xlim=c(0,1), ylim=c(0,1), 
+       ax=F, bty='n', asp=1)
+  text(0,0.95,'A: additivity', font.main=1, cex=1.35*1.5, adj=0)
+  
+  angles_deg <- c('rotation'   = 45,
+                  'adaptation' = 40,
+                  'implicit'   = 20,
+                  'explicit'   = 20,
+                  'target'     = 15)
+  
+  drawAdditivitySchematic(angles_deg = angles_deg,
+                          cols = cols,
+                          addLabels = 1)
+  
+  lab_ang <- (angles_deg['target']/180)*pi
+  text(x=cos(lab_ang)-0.15,
+       y=sin(lab_ang)-0.1,
+       labels='visual target',
+       srt=angles_deg['target'])
+  
+  best_deg <- sum(angles_deg[c('target','rotation')])
+  best_rad <- (best_deg/180)*pi
+  text(x=cos(best_rad)-0.15,
+       y=sin(best_rad)-0.17,
+       labels='full compensation',
+       srt=best_deg,
+       col='gray')
+  
+  
+  # # # # # # # # # # # # # # # # # 
+  # B: rotation=45, adaptation=40, implicit=30, explicit=10
+  
+  plot(-1000, -1000,
+       main='', xlab='', ylab='', 
+       xlim=c(0,1), ylim=c(0,1), 
+       ax=F, bty='n', asp=1)
+  text(0,0.95,'B: less explicit', font.main=1, cex=1.35*1.5, adj=0)
+  #title(xlab='explicit [°]', line = 0.5,cex.lab=textsize)
+  #title(ylab='implicit [°]', line = 2.5,cex.lab=textsize)
+  
+  angles_deg <- c('rotation'   = 45,
+                  'adaptation' = 40,
+                  'implicit'   = 30,
+                  'explicit'   = 10,
+                  'target'     = 15)
+  
+  drawAdditivitySchematic(angles_deg = angles_deg,
+                          cols = cols,
+                          addLabels = 2)
+  
+  # # # # # # # # # # # # # # # # # 
+  # C: rotation=45, adaptation=40, implicit=10, explicit=30
+  
+  plot(-1000, -1000,
+       main='', xlab='', ylab='', 
+       xlim=c(0,1), ylim=c(0,1), 
+       ax=F, bty='n', asp=1)
+  text(0,0.95,'C: more explicit', font.main=1, cex=1.35*1.5, adj=0)
+  #title(xlab='explicit [°]', line = 0.5,cex.lab=textsize)
+  #title(ylab='implicit [°]', line = 2.5,cex.lab=textsize)
+  
+  angles_deg <- c('rotation'   = 45,
+                  'adaptation' = 40,
+                  'implicit'   = 10,
+                  'explicit'   = 30,
+                  'target'     = 15)
+  
+  drawAdditivitySchematic(angles_deg = angles_deg,
+                          cols = cols,
+                          addLabels = 2)
+  # # # # # # # # # # # # # # # # # 
+  # D: diagonal (slope:-1, intercept:24) explicit=c(4,12,20), implicit=c(20,12,4)
+  
+  plot(-1000, -1000,
+       main='', xlab='', ylab='', 
+       xlim=c(-5,50), ylim=c(-5,50), 
+       ax=F, bty='n', asp=1)
+  text(-5,47.25,'D: linearity', font.main=1, cex=1.35*1.5, adj=0)
+  title(xlab='explicit [°]', line = 2, cex.lab=textsize)
+  title(ylab='implicit [°]', line = 2, cex.lab=textsize)
+  
+
+  lines(x=c(0,0,45),y=c(45,0,0),col='gray')
+  
+  lines(x=c(0,10,10),
+        y=c(30,30,0),
+        col='gray',
+        lty=2)
+  lines(x=c(0,20,20),
+        y=c(20,20,0),
+        col='gray',
+        lty=2)
+  lines(x=c(0,30,30),
+        y=c(10,10,0),
+        col='gray',
+        lty=2)
+  
+  points(x=c(0,40),
+         y=c(40,0),
+         col=cols$col.op[which(cols$process %in% c('implicit','explicit'))],
+         pch=16,cex=1.5)
+  
+  text(3,40,'only implicit adaptation',col=cols$col.op[which(cols$process == 'implicit')],adj=0)
+  text(40,3,'only explicit adaptation',col=cols$col.op[which(cols$process == 'explicit')],adj=0,srt=90)
+  
+  
+  lines(x=c(-2,42),y=c(42,-2),col='black')
+  
+  points(x=c(20,10,30),
+         y=c(20,30,10),
+         col=cols$col.op[which(cols$process == 'adaptation')],
+         pch=16,cex=1.5)
+  
+  text(x=c(20,10,30)+3,
+       y=c(20,30,10)+3,
+       col=cols$col.op[which(cols$process == 'adaptation')],
+       labels=c('A','B','C'),
+       cex=1.5)
+  
+  axis(side=1,at=c(0,10,20,30,40))
+  axis(side=2,at=c(0,10,20,30,40))
+  
+  
+
+  # # # # # # # # # # # # # # # # # 
+  # F: many different total adaptations, with regression 95% CI
+  
+  plot(-1000, -1000,
+       main='', xlab='', ylab='', 
+       xlim=c(-5,50), ylim=c(-5,50), 
+       ax=F, bty='n', asp=1)
+  text(-5,47.25,'E: simulations', font.main=1, cex=1.35*1.5, adj=0)
+  title(xlab='explicit [°]', line = 2, cex.lab=textsize)
+  title(ylab='implicit [°]', line = 2, cex.lab=textsize)
+  
+  lines(x=c(0,0,45),y=c(45,0,0),col='gray')
+  lines(x=c(-2,42),y=c(42,-2),col='black')
+  #points(x=c(0,40),y=c(40,0),col='black',pch=1,cex=1.5)
+  
+  # standard deviation of noise in simulations:
+  std = 7
+  set.seed(1)
+  sims <- simulatedAdditivity(bootstraps=1000, N=24, normalize=FALSE, std=std)
+  df <- sims[['simulation']]
+  data <- sims[['data']]
+  
+  
+  for (bs in c(1:dim(df)[1])) {
+    X <- df[bs,c('exp_min','exp_max')]
+    if (df$include1[bs]) {col='#6666ff0f'} else {col='#ff66662f'}
+    lines(x=X,
+          y=df$intercept[bs] + (X*df$slope[bs]),
+          col=col)
+  }
+  
+  lines(x=c(5,35),
+        y=c(35,5),
+        lty=3,
+        col='black')
+  
+  legend(15,45,c( expression('-1 in slope 95% CI'),
+                  expression('-1 not in slope 95% CI') ),
+         lty=1, bty='n', seg.len=1.2,
+         col=c('#6666ffcc','#ff6666cc') )
+    
+  
+  axis(side=1,at=c(0,45))
+  axis(side=2,at=c(0,45))
+  
+  
+  # # # # # # # # # # # # # # # # # 
+  # E: many different total adaptations, with slopes in 95% CI
+  
+  # par(mar=c(0, 3.5, 0, 0.1))
+  # 
+  # plot(-1000, -1000,
+  #      main='', xlab='', ylab='', 
+  #      xlim=c(0,1), ylim=c(0,1), 
+  #      ax=F, bty='n')
+  # # title(xlab='explicit [°]', line = 2, cex.lab=textsize)
+  # # title(ylab='implicit [°]', line = 2, cex.lab=textsize)
+  # 
+  # text(0,0,'F: simulations', font.main=1, cex=1.35*1.5, adj=0)
+  # 
+  # fontsize = 1.1
+  
+  # text(0,0.95,
+  #      'generative model:',
+  #      cex=fontsize,
+  #      adj=0)
+  # stdstr <- sprintf('=%0.1f°)',std)
+  # text(0,0.7,
+  #      expression(paste(epsilon, ' = N(', mu, '=0°, ', sigma, '=7°)') ),
+  #      cex=fontsize,
+  #      adj=0)
+  # 
+  # text(0,0.5,
+  #      expression(paste(A[p], ' = 40° + ', epsilon['a,p']) ),
+  #      cex=fontsize,
+  #      adj=0)
+  # text(0,0.3,
+  #      expression(paste(E[p], ' = 20° + ', epsilon['e,p']) ),
+  #      cex=fontsize,
+  #      adj=0)
+  # text(0,0.1,
+  #      expression(paste(I[p], ' = ', A[p], ' - ', E[p], ' + ', epsilon['i,p']) ),
+  #      cex=fontsize,
+  #      adj=0)
+  # 
+  # text(0.5,.95,
+  #      'slope recovery:',
+  #      cex=fontsize,
+  #      adj=0)
+  # 
+  # text(0.5,.7,
+  #      expression(paste(hat(I)[p], ' = ', beta[0], ' + ', beta[1], E[p]) ),
+  #      cex=fontsize,
+  #      adj=0)
+  
+  
+  # # # # # # # # # # # # # # # # # # 
+  # # F: implicit & explicit normalized by adaptation
+  # 
+  # plot(-1000, -1000,
+  #      main='', xlab='', ylab='', 
+  #      xlim=c(-0.1,1.25), ylim=c(-0.1,1.25), 
+  #      ax=F, bty='n', asp=1)
+  # text(-0.1,1.1825,'F: normalization', font.main=1, cex=1.35*1.5, adj=0)
+  # title(xlab='explicit/adaptation', line = 2, cex.lab=textsize)
+  # title(ylab='implicit/adaptation', line = 2, cex.lab=textsize)
+  # 
+  # lines(x=c(0,0,1.1),y=c(1.1,0,0),col='gray')
+  # lines(x=c(-0.05,1.05),y=c(1.05,-0.05),col='black')
+  # points(x=c(0,1),y=c(1,0),col='black',pch=1,cex=1.5)
+  # 
+  # 
+  # points(x=data[['explicit']][1,]/40,
+  #        y=data[['implicit']][1,]/40,
+  #        pch=1, cex=1.5,
+  #        col='gray')
+  # points(x=data[['explicit']][1,]/data[['adaptation']][1,],
+  #        y=data[['implicit']][1,]/data[['adaptation']][1,],
+  #        pch=1, cex=1.5,
+  #        col='blue')
+  # 
+  # axis(side=1,at=c(0,1))
+  # axis(side=2,at=c(0,1))
+  
+  par(mar=c(2., 3., 2., 3.))
+  
+  sim.df <- read.csv('data/additivitySlopesSimulations_3.csv', stringsAsFactors = FALSE)
+  
+  pm <- persp(x = unique(sim.df$N),
+              y = unique(sim.df$std),
+              z = matrix(sim.df$incl_1,
+                         nrow=length(unique(sim.df$N))),
+              xlab='\n\nsample size', ylab='\n\nnoise [sd]', zlab='\n\n\nproportion 95% CIs\nwith slope -1',
+              xlim=c(0,100),ylim=c(0,15),zlim=c(0,1),
+              col='#ffffffcc',
+              border='#999999',
+              theta=40,
+              phi=30,
+              # mar=c(10,10,0,2),
+              ticktype = 'detailed', box=TRUE, axes=FALSE,
+              
+              cex.axis=0.90,
+              cex.lab=0.90)
+  
+  # x-axis tick marks (sample size: 0-100):
+  tick.start <- trans3d(c(0,25,50,75,100), 0, 0, pm)
+  tick.end <- trans3d(c(0,25,50,75,100), -0.60, 0, pm)
+  segments(tick.start$x, tick.start$y, tick.end$x, tick.end$y)
+  
+  # x-axis tick labels:
+  label.pos <- trans3d(c(0,25,50,75,100), -2, 0, pm)
+  text(label.pos$x, label.pos$y, labels=c('0','25','50','75','100'), adj=c(0.5, NA), srt=0, cex=0.9, xpd=TRUE)
+  
+  # x-axis label:
+  xlp <- trans3d(c(0,100), -4, 0, pm)
+  ang <- ( atan2(diff(xlp$y), diff(xlp$x)) / pi) * 180
+  xlp <- trans3d(50, -4, 0, pm)
+  text(xlp$x, xlp$y, 'sample size', srt=ang, xpd=TRUE)
+  
+  # y-axis tick marks (noise: 0-15):
+  tick.start <- trans3d(100, c(0,5,10,15), 0, pm)
+  tick.end <- trans3d(104, c(0,5,10,15), 0, pm)
+  segments(tick.start$x, tick.start$y, tick.end$x, tick.end$y)
+
+  # y-axis tick labels:
+  label.pos <- trans3d(112, c(0,5,10,15), 0, pm)
+  text(label.pos$x, label.pos$y, labels=c('0','5','10','15'), adj=c(0.5, NA), srt=0, cex=0.9, xpd=TRUE)
+
+  # y-axis label:
+  ylp <- trans3d(128, c(0,15), 0, pm)
+  ang <- ( atan2(diff(ylp$y), diff(ylp$x)) / pi) * 180
+  ylp <- trans3d(124, 7.5, 0, pm)
+  text(ylp$x, ylp$y, 'noise [sd]', srt=ang, xpd=TRUE)
+  
+  
+  # z-axis tick marks (proportion 95% CIs with slope -1):
+  tick.start <- trans3d(0, 0, c(0.2,0.4,0.6,0.8,1.0), pm)
+  tick.end <- trans3d(0, -.6, c(0.2,0.4,0.6,0.8,1.0), pm)
+  segments(tick.start$x, tick.start$y, tick.end$x, tick.end$y)
+
+  # z-axis tick labels:
+  label.pos <- trans3d(0, -2, c(0.2,0.4,0.6,0.8,1.0), pm)
+  text(label.pos$x, label.pos$y, labels=c('0.2','0.4','0.6','0.8','1.0'), adj=c(0.5, NA), srt=0, cex=0.9, xpd=TRUE)
+  
+  # z-axis label:
+  zlp <- trans3d(0, -5, c(0,1), pm)
+  ang <- ( atan2(-1*diff(zlp$y), -1*diff(zlp$x)) / pi) * 180
+  zlp <- trans3d(0, -5, 0.5, pm)
+  text(zlp$x, zlp$y, 'proportion 95% CIs\nwith slope -1', srt=ang, xpd=TRUE)
+  
+  
+  ex_idx <- which(sim.df$N == 24 & sim.df$std == 7)
+  proportion <- sim.df$incl_1[ex_idx]
+  
+  ex_point <- trans3d(24, 7, proportion, pm)
+  points(ex_point$x, ex_point$y, col='red', pch=1, cex=2)
+  
+  
+  # text(-0.5,0.4,'F: simulations', font.main=1, cex=1.35*1.5, adj=0)
+  
+  # persp(x = unique(sim.df$N),
+  #       y = unique(sim.df$std),
+  #       z = matrix(sim.df$ci95span,
+  #                  nrow=length(unique(sim.df$N))),
+  #       xlab='\nsample size', ylab='\nstandard deviation', zlab='\n95% CI span',
+  #       xlim=c(0,100),ylim=c(0,15),zlim=c(0,6),
+  #       theta=40,
+  #       phi=30,
+  #       ticktype='detailed')
   
   
   
-  layout(matrix(c(1,2),byro=TRUE, nrow = 1, ncol = 2))
   
-  
-  df <- read.csv('data/additivitySlopesSimulations.csv', stringsAsFactors = FALSE)
-  
-  persp(x = unique(df$N),
-        y = unique(df$std),
-        z = matrix(df$incl_1, 
-                      nrow=length(unique(df$N))),
-        xlab='\nsample size', ylab='\nnoise parameter', zlab='\n\nproportion 95% CIs\nwith slope -1',
-        xlim=c(0,100),ylim=c(0,15),zlim=c(0,1),
-        theta=40,
-        phi=30,
-        ticktype = 'detailed')
-  
-  persp(x = unique(df$N),
-        y = unique(df$std),
-        z = matrix(df$ci95span,
-                      nrow=length(unique(df$N))),
-        xlab='\nsample size', ylab='\nstandard deviation', zlab='\n95% CI span',
-        xlim=c(0,100),ylim=c(0,15),zlim=c(0,6),
-        theta=40,
-        phi=30,
-        ticktype='detailed')
-  
-  
+  if (target %in% c('pdf','svg')) {
+    dev.off()
+  }
   
 }
+
+
+
+
+# fig1_3D_simulation_results <- function() {
+#   
+#   
+#   
+#   layout(matrix(c(1,2),byro=TRUE, nrow = 1, ncol = 2))
+#   
+#   
+#   df <- read.csv('data/additivitySlopesSimulations.csv', stringsAsFactors = FALSE)
+#   
+#   persp(x = unique(df$N),
+#         y = unique(df$std),
+#         z = matrix(df$incl_1, 
+#                       nrow=length(unique(df$N))),
+#         xlab='\nsample size', ylab='\nnoise parameter', zlab='\n\nproportion 95% CIs\nwith slope -1',
+#         xlim=c(0,100),ylim=c(0,15),zlim=c(0,1),
+#         theta=40,
+#         phi=30,
+#         ticktype = 'detailed')
+#   
+#   persp(x = unique(df$N),
+#         y = unique(df$std),
+#         z = matrix(df$ci95span,
+#                       nrow=length(unique(df$N))),
+#         xlab='\nsample size', ylab='\nstandard deviation', zlab='\n95% CI span',
+#         xlim=c(0,100),ylim=c(0,15),zlim=c(0,6),
+#         theta=40,
+#         phi=30,
+#         ticktype='detailed')
+#   
+#   
+#   
+# }
 
 
 fig3_ExperimentRsults <- function(target='inline') {
@@ -5402,13 +5775,13 @@ fig3_ExperimentRsults <- function(target='inline') {
 fig4_Explicit_TwoRate <- function(target='inline') {
   
   if (target=='svg') {
-    svglite::svglite(file='doc/Fig4_tworate.svg', width=8, height=6, fix_text_size = FALSE)
+    svglite::svglite(file='doc/Fig4_tworate.svg', width=6, height=4.5, fix_text_size = FALSE)
   }
   if (target=='pdf') {
-    cairo_pdf(filename='doc/Fig4_tworate.pdf', width=8, height=6)
+    cairo_pdf(filename='doc/Fig4_tworate.pdf', width=6, height=4.5)
   }
   
-  textsize <- 0.8
+  textsize <- 1.0
   
   layout(mat=matrix(c(1,2,3,4,4,4),nrow=2,ncol=3,byrow = TRUE))
   
@@ -5429,7 +5802,7 @@ fig4_Explicit_TwoRate <- function(target='inline') {
     group <- groupnames[groupno]
     
     plot(-1000,-1000,main='',xlab='', ylab='', xlim=c(0,22), ylim=c(-7,40), ax=F, bty='n')
-    text(0,35,c('A: control', 'B: instructed', 'C: aiming')[groupno], font.main=1, cex=1.35, adj=0)
+    text(0,35,c('A: control', 'B: instructed', 'C: aiming')[groupno], font.main=1, cex=1.35*textsize, adj=0)
     title(ylab='difference score [°]', line = 2.5)
     
     df <- read.csv(sprintf('data/%s-nocursors-all.csv', group), stringsAsFactors = F)
@@ -5481,8 +5854,8 @@ fig4_Explicit_TwoRate <- function(target='inline') {
   #lines(dX+18, dY, col="#001388FF", lty=2)
   lines(dX+14, dY, col="#000000FF", lty=2)
   
-  text(13, iM, 'unaware', srt=90, cex=0.8)
-  text(13, eM, 'aware', srt=90, cex=0.8)
+  text(13, iM, 'unaware', srt=90, cex=textsize)
+  text(13, eM, 'aware', srt=90, cex=textsize)
   
   dataM <- data.frame('explicit'=c(iM, eM))
   iLM <- dnorm(dataM$explicit, mean=iM, sd=iS)
