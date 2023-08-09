@@ -4782,6 +4782,11 @@ fig1_Additivity <- function(target='inline') {
   if (target=='pdf') {
     cairo_pdf(filename='doc/Fig1_additivity.pdf', width=8, height=5)
   }
+  if (target=='tiff') {
+    tiff(filename='doc/Fig1_additivity.tiff',
+         width=8, height=5, units='in', res=450,
+         type='cairo', compression='lzw')
+  }
   
   textsize <- 1.35
   
@@ -5138,7 +5143,7 @@ fig1_Additivity <- function(target='inline') {
   
   
   
-  if (target %in% c('pdf','svg')) {
+  if (target %in% c('pdf','svg','tiff')) {
     dev.off()
   }
   
@@ -5188,6 +5193,11 @@ fig3_ExperimentRsults <- function(target='inline') {
   }
   if (target=='pdf') {
     cairo_pdf(filename='doc/Fig3_exp_results.pdf', width=8, height=8)
+  }
+  if (target=='tiff') {
+    tiff(filename='doc/Fig3_exp_results.tiff',
+         width=8, height=8, units='in', res=450,
+         type='cairo', compression='lzw')
   }
   
   textsize <- 1.35
@@ -5768,7 +5778,7 @@ fig3_ExperimentRsults <- function(target='inline') {
   axis(side=1, at=c(0,15,30,45), cex.axis=textsize)
   
   
-  if (target %in% c('pdf','svg')) {
+  if (target %in% c('pdf','svg','tiff')) {
     dev.off()
   }
   
@@ -5783,6 +5793,11 @@ fig4_Explicit_TwoRate <- function(target='inline') {
   }
   if (target=='pdf') {
     cairo_pdf(filename='doc/Fig4_tworate.pdf', width=6, height=4.5)
+  }
+  if (target=='tiff') {
+    tiff(filename='doc/Fig4_tworate.tiff',
+         width=6, height=4.5, units='in', res=450,
+         type='cairo', compression='lzw')
   }
   
   textsize <- 1.0
@@ -6062,7 +6077,7 @@ fig4_Explicit_TwoRate <- function(target='inline') {
   
   axis(side=2, at=c(0,15,30))
   
-  if (target %in% c('svg','pdf')) {
+  if (target %in% c('svg','pdf','tiff')) {
     dev.off()
   }
   
@@ -6075,6 +6090,11 @@ fig5_External_Aiming <- function(target='inline') {
   }
   if (target == 'pdf') {
     cairo_pdf(filename='doc/Fig5_extradata.pdf', width=4, height=6)
+  }
+  if (target=='tiff') {
+    tiff(filename='doc/Fig5_extradata.tiff',
+         width=4, height=6, units='in', res=450,
+         type='cairo', compression='lzw')
   }
   
   textsize <- 0.8
@@ -6233,7 +6253,7 @@ fig5_External_Aiming <- function(target='inline') {
          bty='n', cex=group.cex, ncol=5, seg.len=1)
   
   
-  if (target %in% c('svg','pdf')) {
+  if (target %in% c('svg','pdf','tiff')) {
     dev.off()
   }
   
@@ -6246,6 +6266,11 @@ fig6_External_PDP <- function(target='inline') {
   }
   if (target == 'pdf') {
     cairo_pdf(filename='doc/Fig6_extra_PDP.pdf', width=4, height=5)
+  }
+  if (target=='tiff') {
+    tiff(filename='doc/Fig6_extra_PDP.tiff',
+         width=4, height=5, units='in', res=450,
+         type='cairo', compression='lzw')
   }
   
   textsize <- 0.8
@@ -6404,7 +6429,7 @@ fig6_External_PDP <- function(target='inline') {
          bty='n', cex=group.cex, ncol=5, seg.len=1)
   
   
-  if (target %in% c('svg','pdf')) {
+  if (target %in% c('svg','pdf','tiff')) {
     dev.off()
   }
   
@@ -6419,6 +6444,11 @@ fig7_Relations_too <- function(target='inline') {
   }
   if (target=='pdf') {
     cairo_pdf(filename='doc/Fig7_relations.pdf', width=8, height=4)
+  }
+  if (target=='tiff') {
+    tiff(filename='doc/Fig7_relations.tiff',
+         width=8, height=4, units='in', res=450,
+         type='cairo', compression='lzw')
   }
   
   # set up global plot parameters:
@@ -6667,7 +6697,7 @@ fig7_Relations_too <- function(target='inline') {
   
   
   
-  if (target %in% c('svg','pdf')) {
+  if (target %in% c('svg','pdf','tiff')) {
     dev.off()
   }
   
