@@ -313,7 +313,12 @@ trimReach <- function(trialdf, homeStart=NA, targetReached=NA, velocity=0.05, fi
     
   }
   
-  if (!is.na(holdHome) && is.list(holdHome) && (length(holdHome) == 2)) {
+  # print(holdHome)
+  # print(!is.na(holdHome))
+  # print(is.list(holdHome))
+  # print(length(holdHome) == 2)
+  
+  if (all(c( !is.na(holdHome), is.list(holdHome), length(holdHome) == 2))) {
     epoch <- holdHome$epoch
     distance <- holdHome$distance
     
@@ -337,7 +342,7 @@ trimReach <- function(trialdf, homeStart=NA, targetReached=NA, velocity=0.05, fi
     
   }
   
-  if (!is.na(untilHold) && is.list(untilHold) && (length(untilHold) == 4)) {
+  if (all(c(!is.na(untilHold), is.list(untilHold), length(untilHold) == 4))) {
     
     # here we use sample-to-sample velocity as used during the experiment
     # (so no smoothed / splined trajectory)
