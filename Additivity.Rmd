@@ -1,6 +1,7 @@
 ---
 title: "Additivity of Implicit and Explicit Motor Adaptation"
 output:
+  pdf_document: default
   html_document:
     df_print: paged
 bibliography: bibliography.bib
@@ -10,13 +11,60 @@ link-citations: yes
  
 In this document we pre-process and analyze data and make figures for a project where we tested the presumed additivity of implicit and explicit motor adaptation. First we did an experiment with 3 groups of participants that performed motor adaptation in conditions with the same rotation to adapt to, but designed to evoke different levels of explicit adaptation. Then we collected data from a set of other studies, and tested additivity in that data as well.
 
+We install a support package, also used in other projects from our lab:
+
+```{r install_requirements}
+if (!require(Reach)) {
+  if (!require(remotes)) {
+    install.packages(remotes)
+  }
+  remotes::install_github('thartbm/Reach', ref='main', force=TRUE)
+}
+library(Reach)
+```
+
+All the raw data for this project is available from OSF. We can use a `Reach` function to download it:
+
+```{r download_data}
+datalist <- list()
+datalist[['\\']] <- c('aiming.zip', 'control.zip', 'instructed.zip', 'demographics.csv', 'extra.zip')
+Reach::downloadOSFdata(repository='kr5eh',
+                       filelist=datalist,
+                       folder='data',
+                       overwrite=TRUE,
+                       unzip=TRUE,
+                       removezips=TRUE)
+```
+
+There should now be 4 subfolders in the 'data' directory: one for each of the 3 groups in our experiment, with full data sets, and a folder for the external data with preprocessed data. There should also be a file called 'demographics.csv' with information about the participants in our experiment.
+
+This RStudio Project uses `renv` in an attempt to make sure the same (versions of) packages are used here as we used when we originally wrote the scripts (a few years ago, really). This probably took some time when starting this up. It also means that all those packages are installed in the project folder, so after being done with the project, you might want to free up some disk space by removing it.
+
+Then we access all our custom functions:
+
+```{r source_project_code}
+# this is for (pre)processing the raw data, and importing the external data:
+source('R/process.R')
+
+# this function provides access to demographics about the participants:
+source('R/models.R')
+
+# this has functions to make figures:
+source('R/figures.R')
+
+# this file has functions that reproduce the statistical analyses:
+source('R/statistics.R')
+```
+
+
 # Additivity
 
 Let's first have a look at this "additivity assumption".
 
-```{r}
+```{r illustrate_additivity}
 fig1_Additivity()
 ```
+
 Additivity is usually illustrated as in panel A, where the difference between total adaptation (purple) and explicit adaptation (red) is taken to be implicit adaptation (blue). This also means that if one increases by a certain amount, the other decreases by the same amount (panels B & C). This amounts to a linear relationship between implicit and explicit adaptation. SInce the additivity assumption predicts a linear relationship with a specific slope (-1) we develop a test of additivity based on this prediction. We put this statistical test to the test in a simulation here. First we generate noisy data according to what is predicted by additivity (panel E: left/top) and then find the slope in that data by fitting a linear model (panel E: bottom/left). We then see that the confidence interval for the slope contains -1 in 95% of simulations (951/1000). In other words, using the confidence interval of the fitted slope and testing if it includes -1 amounts to a statistical test with alpha=0.05. We will be using this test, and variations on it.
 
 # Experiment
@@ -35,62 +83,17 @@ $\hat{A} = \beta_i \cdot I + \beta_e \cdot E$, and:
 
 $\hat{A} = A$, such that the predicted and actual adaptation should have a linear relationship with a slope of 1. If the confidence intervals for the slope parameters include -1 (strict) or 1 (loose) and exclude 0, this means that the additivity assumption is confirmed.
 
-We install a support package, also used in other projects from our lab:
-
-```{r}
-if (!require(Reach)) {
-  if (!require(devtools)) {
-    install.packages(devtools)
-  }
-  devtools::install_github('thartbm/Reach', ref='main', force=TRUE)
-}
-library(Reach)
-```
-
-All the raw data for this project is available from OSF. We can use a `Reach` function to download it:
-
-```{r}
-datalist <- list()
-datalist[['\\']] <- c('aiming.zip', 'control.zip', 'instructed.zip', 'demographics.csv', 'extra.zip')
-Reach::downloadOSFdata(repository='kr5eh',
-                       filelist=datalist,
-                       folder='data',
-                       overwrite=TRUE,
-                       unzip=TRUE,
-                       removezips=TRUE)
-```
-
-There should now be 4 subfolders in the 'data' directory: one for each of the 3 groups in our experiment, with full data sets, and a folder for the external data with preprocessed data. There should also be a file called 'demographics.csv' with information about the participants in our experiment.
-
-This RStudio Project uses `renv` in an attempt to make sure the same (versions of) packages are used here as we used when we originally wrote the scripts (a few years ago, really). This probably took some time when starting this up. It also means that all those packages are installed in the project folder, so after being done with the project, you might want to free up some disk space by removing it.
-
-Then we access all our custom functions:
-
-```{r}
-# this is for (pre)processing the raw data, and importing the external data:
-source('R/process.R')
-
-# this function provides access to demographics about the participants:
-source('R/participants.R')
-
-# this has functions to make figures:
-source('R/figures.R')
-
-# this file has functions that reproduce the statistical analyses:
-source('R/statistics.R')
-```
-
 # Process data
 
 This function takes the raw data files from every participant (24 per group), and converts it to a single file with 1 row per trial, and all behavior expressed in terms of angular deviations from the target. It stores one file per group. This may take a while...
 
-```{r}
+```{r process_data}
 processData()
 ```
 
 From this we extract the interesting data: reach deviations and aiming responses during training and the three kinds of no-cursor reach deviations. This should be much faster:
 
-```{r}
+```{r extract_training+nocursor_data}
 saveTrainingdata()
 saveNoCursorData()
 ```
@@ -101,8 +104,8 @@ Apart from the folders with raw data, there should now be a lot of other csv fil
 
 Let's have a look at the overall learning (or 'adaptation') and the aiming responses over time:
 
-```{r fig.width=8, fig.height=6}
-fig3_Learning_PointEstimates()
+```{r plot_experiment_data, fig.width=8, fig.height=8}
+fig3_ExperimentRsults()
 ```
 
 
@@ -113,67 +116,65 @@ We will now do statistics on the values depicted in panel B.
 The level of adaptation is estimated for every participant as the reach deviations in the last three block of 8 trials before each set of no-cursor blocks in the rotated part, minus the reach deviations in the last three blocks of 8 trials before each set of no-cursor blocks in the aligned part. We can then look for differences in the level of adaptation between the groups using a one-factor ANOVA:
 
 
-```{r}
+```{r adaptation_ftest}
 adaptationFtest()
 ```
 
-That is, there is no effect of group on adaptation (F(2,69)=0.20, p=0.82, ges=.006), which means that we can't reject the null-hypothesis that adaptation is the same in each of the groups.
+That is, there is no effect of group on adaptation (F(2,69)=0.20, p=0.82, ges=.006), which means that we can't reject the null-hypothesis that adaptation is the same in each of the groups. A Bayesian analysis shows there is no support for the null hypothesis either.
 
 As a measure of implicit adaptation we take the reach deviations in the "exclude strategy" no-cursor reaches from our Process Dissociation Procedure minus the reach deviations in the no-cursor trials from aligned part. We then test if implicit adaptation is different between the groups:
 
-```{r}
+```{r implicit_ftest}
 implicitFtest()
 ```
 
-We see there is no effect of group on implicit no-cursor reach deviations (F(2,69)=0.59, p=.56, ges=.017), so that we can not reject the null-hypothesis that there is no difference between the groups in implicit adaptation.
+We see there is no effect of group on implicit no-cursor reach deviations (F(2,69)=0.59, p=.56, ges=.017), so that we can not reject the null-hypothesis that there is no difference between the groups in implicit adaptation. A Bayesian analysis provides moderate support for the null hypothesis.
 
 For now, we estimate explicit adaptation for every participant as the difference between reach deviations in the include and exclude blocks from the Process Dissociation Procedure. Then we can test if explicit adaptation is different between the three groups:
 
-```{r}
-knitr::kable(afex::nice(explicitFtest()))
+```{r explicit_ftest}
+knitr::kable(explicitFtest())
 ```
 
-There is an effect of group on explicit adaptation (F(2,69)=17.56, p<.001, ges=.337), which means that explicit adaptation is different between at least two of the groups. We will do a post-hoc comparison to investigate this:
+There is an effect of group on explicit adaptation (F(2,69)=17.56, p<.001, ges=.337), which means that explicit adaptation is different between at least two of the groups. A Bayesian analysis also provides evidence for the alternative hypothesis. We will do a post-hoc comparison to investigate this:
 
-```{r}
+```{r explicit_posthoc}
 knitr::kable(explicitPostHoc())
 ```
 
-We find that we can't reject the null hypothesis that explicit adaptation is the same in the aiming and the control group (t-ratio(df=69)=1.53, p=0.28). There are differences between the instructed group and both the aiming (t-ratio(69)=-4.19, p<.001) and the control group (t-ratio(69)=-5.72, p<.001).
+We find that we can't reject the null hypothesis that explicit adaptation is the same in the aiming and the control group (t-ratio(df=69)=1.53, p=0.28). A Bayesian analysis neither provides evidence for the null hypothesis nor for the alternative hypothesis. There are differences between the instructed group and both the aiming (t-ratio(69)=-4.19, p<.001) and the control group (t-ratio(69)=-5.72, p<.001).
 
 Of course, this difference measure between include and exclude strategy no-cursor reach deviations suffers from the same weakness that we are investigating here: it assumes that explicit and implicit adaptation are literally added by the brain AND that this is measured adequately in the include strategy conditions AND that the exclude strategy condition gives us a good measure of implicit adaptation. All of these (largely untested) assumptions need to be true for this difference measure to make sense. So we'll test that.
 
 # Explicit measure
 
-Apart from the difference between include and exclude strategy no-cursor reaches as a measure of explicit adaptation, we also have re-aiming responses - of course only for the aiming group. Re-aiming responses seem like a valid measure of explicit adaptation, and are certainly used more than the difference between two kinds of Process Dissociation Procedure no-cursor reach deviations. So we can test how well the two match each other. This is depicted in panel C of the above figure.
+Apart from the difference between include and exclude strategy no-cursor reaches as a measure of explicit adaptation, we also have re-aiming responses - of course only for the aiming group. Re-aiming responses seem like a valid measure of explicit adaptation, and are probably used more than the difference between two kinds of Process Dissociation Procedure no-cursor reach deviations. So we can test how well the two match each other. This is depicted in panel D of the above figure.
 
 We test how well aiming responses, as a direct measure of explicit adaptation, predict the include-exclude difference, an indirect measure of explicit adaptation with a linear regression:
 
-```{r}
+```{r explicit_regression}
 explicitRegression()
 ```
 
-The intercept (2.2 degrees) does not contribute (t=1.59, p=0.13), but the re-aiming response does (t=4.69, p<.001) with a slope of 0.945. The R-squared is moderate though.
+The intercept (2.2 degrees) does not contribute (t=1.59, p=0.13), but the re-aiming response does (t=4.69, p<.001) with a slope of 0.945. The R-squared is only moderate though.
 
 This means that at least in this task and this sample, there is fairly good agreement between the difference measure and the re-aiming responses. While this will need to be confirmed in different tasks and conditions, for now we interpret this to mean that the difference measure is also a reasonable estimate for explicit adaptation in the control and instructed group.
 
-This is NOT in line with Maresch, Werner and Donchin (EJN, 2020), and indeed a weak part of the study.
+This is NOT in line with Maresch, Werner and Donchin (EJN, 2020).
 
-
->>> well then...
 
 # Two-rate model
 
 The fast and slow processed in the state-spave model of adaptation proposed by Smith et al. (2006) have been said to map onto explicit and implicit adaptation. This model also has a strong additivity assumption, but predicts a specific time-course for both the slow and fast process, and so would be different from the above tests that only look at one specific point in time when everything has saturated.
 
-```{r fig.width=8, fig.height=3}
-fig4_Awareness_TwoRate()
+```{r plot_two_rate, fig.width=6, fig.height=4.5}
+fig4_Explicit_TwoRate()
 ```
 
 
-We want to only use the direct measure of explicit adaptation here, so we are restricted to the aiming group. There is variability in both measures of explicit adaptation, but it does look like it could be a bi-modal distribution. Since the fast process in the two-rate model might correspond to explicit adaptation, this means there could be different model fits and different processes, if there is a bi-modal distribution of explicit adaptation in the aiming group. We test this in the include-exclude difference scores, since we want to use the aiming responses later on.
+We want to only use the direct measure of explicit adaptation here, so we are restricted to the aiming group. There is variability in both measures of explicit adaptation, but it does look like it could be a bi-modal distribution. Since the fast process in the two-rate model might correspond to explicit adaptation, this means there could be different model fits and different processes. We test this in the include-exclude difference scores, since we want to use the aiming responses later on.
 
-Fitting a single distribution (two parameter model) is worse than fitting a bi-modal distribution (four parameter model, AIC-based log-likelihood < .001), so we split the aiming participants in two groups. The centres of the two Gaussians used in this model (dashed black line in panel A) to are close to the means in the instructed group and the control group, so we will call them "aware aimers" (N=9) and "unaware aimers" (N=15), and split them by assigning them to the two groups by how high the relative likelihood is that they fall in one group or the other given the include-exclude difference score.
+Fitting a single distribution (two parameter model) is worse than fitting a bi-modal distribution (four parameter model, AIC-based log-likelihood < .001), so we split the aiming participants in two groups. The centres of the two Gaussians used in this model (continuous black lines in panel C) to are close to the means in the instructed group and the control group, so we will call them "aware aimers" (N=9) and "unaware aimers" (N=15), and split them by assigning them to the two groups by how high the relative likelihood is that they fall in one group or the other given the include-exclude difference score.
 
 A second issue here is that the two-rate model might need a different perturbation schedule, so we tested if parameters can be recovered reasonably well from simulated data, based on the control group's reach deviations and SD (1k bootstraps). The 95% confidence interval of the means includes the original parameter value for all 4, which shows that (at least on the group level) parameters can be recovered reasonably well.
 
@@ -181,46 +182,52 @@ We fit the two-rate model on the average reach deviations in each of the two sub
 
 They are not the same however, showing that a model with a strong additivity assumption is not suitable to predict explicit and implicit adaptation.
 
-(We can also test if the slow process predicts implicit adaptation in the control group (it doesn't). In the instructed group however, the instructions in between the aligned and rotated part of the task cause a discontinuity in responses that can't be handles by the standard two-rate model.)
-
 # External data
 
 So far we have only looked at 1 single experiment, and in that data set, additivity does not seem to hold. But is this a general principle that would apply to most, if not all, adaptation research? So we set out to collect a few other data sets from a variety of labs, with different equipment, tasks, research questions but in all cases there were measures of implicit adaptation (strategy exlcusion open-loop reaches) and some measure of explicit adaptation (either aiming, or PDP difference scores).
 
-We try the 'strict additivity' and 'loose additivity' from above, and plot the slope plus confidence interval for each of the 35 subgroups.
+We try the 'strict additivity' and 'loose additivity' from above, and plot the slope plus confidence interval for each of the subgroups where independent measures of explicit and implicit adaptation were available.
 
-```{r fig.height=8, fig.width=4}
-  fig5_ExtraData()
+```{r external_aiming, fig.height=6, fig.width=4}
+fig5_External_Aiming()
 ```
-Strict additivity can not be confirmed in any subgroup, according to our criterion, and loose additivity only in 6/35 cases (purple circles+lines on the right side). This means that additivity usually does not hold in a hopefully representative sample of data from the field.
+Strict additivity can not be confirmed in any subgroup, according to our criterion, and loose additivity only in 5 cases (purple circles+lines on the right side). This means that additivity usually does not hold in a hopefully representative sample of data from the field.
 
-# Alternative explanations
+Some research (including our own) relies on the Process Dissociation Procedure (PDP). In this method, the estimates of implicit and explicit adaptation do not rely on measurements of total adaptation. However, additivity is built into the estimate of explicit adaptation. We present this type of data here separately.
 
-We also test a few other possibilities on this data. First, we plot all the normalized implicit over explicit adaptation, and then two other possible mechanisms.
+```{r external_PDP, fig.height=5, fig.width=4}
+fig6_External_PDP()
+```
+Despite additivity being built into one of the measures, the data seems further removed from additivity than in the previous figure.
 
-```{r fig.width=8, fig.height=3}
-fig6_Relations()
+# Alternative explanation
+
+We can test other mechanisms by which implicit and explicit adaptation might be combined. Here we limit ourselves to a Maximum Likelihood Estimate, where each process is weighted by it's relative reliability.
+
+```{r other_relations, fig.width=8, fig.height=4}
+fig7_Relations_too()
 ```
 
-In panel A, the data is all over the place, in line with the previous figure. We have nevertheless added trends to panel A for rotations that have more than 100 participants (30, 45 and 60 degrees). For 30 and 45 degrees, the relationship might be more or less linear (though not additive) but the 60 degree group shows a different pattern, which we explore in panel B. We compare a linear model (organge line), with a capped fraction model, that assumes that implicit is a given fraction of what is left from total adaptation after we subtract explicit adaptation, but put a maximum on implicit adaptation as well. This alternative model works better than a linear regression (both have 2 parameters) but the spread in the data is very large, so neither is a really good model.
+In panel A, the data is all over the place.
 
-We also try a maximum likelihood estimate (MLE) in panel C (blue line) and compare it with simple additivity (red line). To fit the maximum likelihood model, we need reaonably reliable estimates of variance of both explicit and implicit adaptation, and this is only available in 127 participants. These two models have an identical form, but in MLE the weights of implicit and explicit are determined by their relative reliability, whereas in the additive case, the weights are just 1. In loose additivity, the weights are picked to best predict adptation, so since this did not explain adaptation sufficiently, it should perhaps not be surprising that the two more restricted models each don't seem to do a very good job either.
+In panel B, we try a maximum likelihood estimate (MLE). To fit the maximum likelihood model, we need reasonably reliable estimates of variance of both explicit and implicit adaptation, and this is only available in 468 participants. These two models have a similar form, but in MLE the weights of implicit and explicit are determined by their relative reliability, whereas in the additive case, the weights are just 1. In loose additivity, the weights are picked to best predict adaptation, so since this did not explain adaptation sufficiently, it should perhaps not be surprising that the two more restricted models each don't seem to do a very good job either.
 
 # Conclusion
 
-We think that given our other analyses, it is unlikely that additivity holds in adaptation. Neither of our two alternatives provide a satisfactory explanation for how (measures of) explicit and implicit adaptation are combined when shaping behavior either. So we are left with a question to the field: what is the mechanism by which different adaptation or learning processes or combined when shaping behavior?
+Given all our analyses, we think it is very unlikely that additivity holds in adaptation. So we are left with a question to the field: what is the mechanism by which different adaptation or learning processes or combined when shaping behavior?
 
 In the meantime, when we want to study implicit and/or explicit adaptation, we should use independent measures: measures that do not rely on the additivity assumption.
 
-```{r}
+```{r export_tiff_figures}
 # this code outputs the figures in the paper:
-for (target in c('svg', 'pdf')) {
+for (target in c('tiff')) {   # other options: 'svg' and 'pdf'
   fig1_Additivity(target=target)
   #fig 2 = methods figure, not made in R
-  fig3_Learning_PointEstimates(target=target)
-  fig4_Awareness_TwoRate(target=target)
-  fig5_ExtraData(target=target)
-  fig6_Relations(target=target)
+  fig3_ExperimentRsults(target=target)
+  fig4_Explicit_TwoRate(target=target)
+  fig5_External_Aiming(target=target)
+  fig6_External_PDP(target=target)
+  fig7_Relations_too(target=target)
 }
 ```
 
