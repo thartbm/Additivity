@@ -6460,7 +6460,8 @@ fig7_Relations_too <- function(target='inline') {
   
   
   # get all data:
-  df <- bindExtraData(methods=c('aim.reports', 'PDP.difference'))
+  # df <- bindExtraData(methods=c('aim.reports', 'PDP.difference'))
+  df <- bindExtraData(methods=c('aim.reports'))
   
   # make sure that each rotation is present for both aim and PDP subsets of data
   use_rotations <- as.numeric(names(which(apply(table(df$rotation, df$explicit.method) > 0, 1, all))))
@@ -6702,6 +6703,107 @@ fig7_Relations_too <- function(target='inline') {
   }
   
 }
+
+
+visual_abstract <- function(target='inline') {
+  
+  # set up files, if any:
+  if (target=='svg') {
+    svglite::svglite(file='doc/visual_abstract.svg', width=5, height=5, fix_text_size = FALSE)
+  }
+  if (target=='pdf') {
+    cairo_pdf(filename='doc/visual_abstract.pdf', width=5, height=5)
+  }
+  if (target=='tiff') {
+    tiff(filename='doc/visual_abstract.tiff',
+         width=5, height=5, units='in', res=450,
+         type='cairo', compression='lzw')
+  }
+  
+
+  par(mar=c(3.1,3.1,3.1,3.1))
+  
+  
+  # get all data:
+  df <- bindExtraData(methods=c('aim.reports'))
+  
+  # make sure that each rotation is present for both aim and PDP subsets of data
+  use_rotations <- as.numeric(names(which(apply(table(df$rotation, df$explicit.method) > 0, 1, all))))
+  df <- df[which(df$rotation %in% use_rotations),]
+  
+  allrotations <- sort(unique(df$rotation))
+  nrotations <- length(allrotations)
+  
+  # normalize by individual adaptation
+  norm.var <- unlist(df$adaptation)
+  df$norm.expl <- df$explicit/norm.var
+  df$norm.impl <- df$implicit/norm.var
+  
+  
+  solidcolors =  c(rgb(229, 22,  54,  255, max = 255), 
+                   rgb(22,  54,  255, 255, max = 255))
+  transcolors =  c(rgb(229, 22,  54,  66,  max = 255), 
+                   rgb(136, 153, 255, 47,  max = 255))
+  
+  
+  # # # # # # # # # # 3 # # 
+  # AIMING BASED DATA
+  
+  
+  plot(-1000,-1000,xlim=c(-0.2,1.2),ylim=c(-0.2,1.2),
+       main='',xlab='',ylab='',
+       bty='n',ax=F,asp=1)
+  
+  title(xlab='explicit / adaptation',line=1.9,cex.lab=1.5)
+  title(ylab='implicit / adaptation',line=1.9,cex.lab=1.5)
+
+  # text(-0.2,1.15,'A: aiming reports', font.main=1, cex=1.35*1.5, adj=c(0,0.5))
+  
+  
+  lines(c(0,0,1.1),c(1.1,0,0),col='#999999',lw=1,lty=1)
+  lines(c(-0.1,1.1),c(1.1,-0.1),col=solidcolors[2],lw=2,lty=1)
+  
+  # plot stuff with aiming reports
+  
+  aim.df <- df[which(df$explicit.method == 'aim.reports'),]
+  
+  points(aim.df$norm.expl, aim.df$norm.impl, pch=16, col=transcolors[1], cex=1.2, xpd=TRUE)
+  
+
+  idx <- which(aim.df$norm.expl > -0.2 & aim.df$norm.expl < 1.2 &aim.df$norm.impl > -0.2 & aim.df$norm.impl < 1.2)
+  
+  
+  legend( x = 0.6,
+          y = 1.0575,
+          legend = c('predicted','real data'),
+          bty='n',
+          pch=c(NA,16),
+          lw=c(2,NA),
+          col=rev(solidcolors),
+          cex=1.2)
+  
+  text(0.5,1.15,'data shows:\nadaptation ≠ explicit + implicit',
+       font.main=1, cex=1.35*1.5,
+       adj=c(0.5,0), xpd=TRUE)
+  
+  text(0.5,0.5,
+       'additivity predicts:\nimplicit + explicit = adaptation',
+       cex=1.5,
+       adj=c(0.5,0.5),srt=-45,
+       col=solidcolors[2])
+  
+  axis(1,at=c(0,1),cex.axis=1.3)
+  axis(2,at=c(0,1),cex.axis=1.3)
+  
+  
+
+  
+  if (target %in% c('svg','pdf','tiff')) {
+    dev.off()
+  }
+  
+}
+
 
 # fig7_Relations_too <- function(target='inline') {
 #   
