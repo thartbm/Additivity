@@ -5473,7 +5473,7 @@ fig3_ExperimentRsults <- function(target='inline') {
   
   #title(main='strict additivity')
   
-  title(ylab='implicit measure [°]', line=2.5, cex.lab=textsize)
+  title(ylab='exclusion [°]', line=2.5, cex.lab=textsize)
   axis(side=2, at=c(0,10,20,30), cex.axis=textsize)
   
   title(xlab='aiming reports [°]', line=2.5, cex.lab=textsize)
@@ -5656,7 +5656,7 @@ fig3_ExperimentRsults <- function(target='inline') {
   
   #title(main='strict additivity')
   
-  title(ylab='implicit measure [°]', line=2.5, cex.lab=textsize)
+  title(ylab='exclusion [°]', line=2.5, cex.lab=textsize)
   axis(side=2, at=c(0,20,40), cex.axis=textsize)
   
   title(xlab='include - exclude [°]', line=2.5, cex.lab=textsize)
