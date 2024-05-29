@@ -1,9 +1,10 @@
 ---
 title: "Additivity of Implicit and Explicit Motor Adaptation"
 output:
-  pdf_document: default
+  word_document: default
   html_document:
     df_print: paged
+  pdf_document: default
 bibliography: bibliography.bib
 csl: plos.csl
 link-citations: yes
@@ -220,7 +221,7 @@ In the meantime, when we want to study implicit and/or explicit adaptation, we s
 
 ```{r export_tiff_figures}
 # this code outputs the figures in the paper:
-for (target in c('tiff')) {   # other options: 'svg' and 'pdf'
+for (target in c('tiff','svg','pdf')) {   # other options: 'svg' and 'pdf'
   fig1_Additivity(target=target)
   #fig 2 = methods figure, not made in R
   fig3_ExperimentRsults(target=target)
