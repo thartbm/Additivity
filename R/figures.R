@@ -5784,27 +5784,330 @@ fig3_ExperimentRsults <- function(target='inline') {
   
 }
 
+# 
+# fig4_Explicit_TwoRate <- function(target='inline') {
+#   
+#   if (target=='svg') {
+#     svglite::svglite(file='doc/Fig4_tworate.svg', width=6, height=4.5, fix_text_size = FALSE)
+#   }
+#   if (target=='pdf') {
+#     cairo_pdf(filename='doc/Fig4_tworate.pdf', width=6, height=4.5)
+#   }
+#   if (target=='tiff') {
+#     tiff(filename='doc/Fig4_tworate.tiff',
+#          width=6, height=4.5, units='in', res=450,
+#          type='cairo', compression='lzw')
+#   }
+#   
+#   textsize <- 1.0
+#   
+#   layout(mat=matrix(c(1,2,3,4,4,4),nrow=2,ncol=3,byrow = TRUE))
+#   
+#   par(mar=c(2,4,0,0.1))
+#   
+#   
+#   pp <- sprintf('p%03d',c(1:24))
+#   groups <- getGroups()
+#   groupnames <- c('control', 'instructed', 'aiming')
+#   
+#   grouplabels <- c()
+#   groupcols <- c()
+#   
+#   set.seed(93)
+#   
+#   for (groupno in c(1:length(groupnames))) {
+#     
+#     group <- groupnames[groupno]
+#     
+#     plot(-1000,-1000,main='',xlab='', ylab='', xlim=c(0,22), ylim=c(-7,40), ax=F, bty='n')
+#     text(0,35,c('A: control', 'B: instructed', 'C: aiming')[groupno], font.main=1, cex=1.35*textsize, adj=0)
+#     title(ylab='difference score [°]', line = 2.5)
+#     
+#     df <- read.csv(sprintf('data/%s-nocursors-all.csv', group), stringsAsFactors = F)
+#     row.names(df) <- df$condition
+#     
+#     col.op <- as.character(groups$col.op[which(groups$group == group)])
+#     col.tr <- as.character(groups$col.tr[which(groups$group == group)])
+#     
+#     grouplabels <- c(grouplabels, as.character(groups$label[which(groups$group == group)]))
+#     groupcols <- c(groupcols, col.op)
+#     
+#     explicit <- as.numeric(df['include',pp] - df['exclude',pp])
+#     CI <- Reach::getConfidenceInterval(explicit, method='b')
+#     avg <- mean(explicit)
+#     polygon(x=c(2,6,6,2), y=c(rep(CI[1],2),rep(CI[2],2)), col=col.tr, border=NA)
+#     lines(x=c(2,6), y=rep(avg,2), col=col.op)
+#     
+#     # text(0.4+(groupno*4)-2,-8.5, group, srt=90, adj=c(0,0.5), cex=0.8)
+#     
+#     # points(x=rep(10, length(explicit)), explicit, pch=16, col=col.tr, cex=2)
+#     points(x=runif(length(explicit),min=9,max=11), explicit, pch=16, col=col.tr, cex=2)
+#     
+#     dX <- density(explicit, n=81, from=-10, to=30, bw=2.5)$y
+#     dX <- (dX / sum(dX)) * 150
+#     dY <- seq(-10,30,.5)
+#     
+#     polygon(x=c(0,dX,0)+14, y=c(dY[1],dY,dY[length(dY)]), border=NA, col=col.tr)
+#     
+#     lines(dX+14, dY, col=col.op)
+#     
+#     axis(side=2, at=c(0,15,30))
+#     
+#     
+#   }
+#   
+#   data <- data.frame('explicit'=seq(-10,30,.5))
+#   bimodal <- fitModel()
+#   iM <- bimodal[['par']]['iM']
+#   iS <- bimodal[['par']]['iS']
+#   eM <- bimodal[['par']]['eM']
+#   eS <- bimodal[['par']]['eS']
+#   f  <- bimodal[['par']]['f']
+#   iL <- dnorm(data$explicit, mean=iM, sd=iS)
+#   eL <- dnorm(data$explicit, mean=eM, sd=eS)
+#   prob_dens <- (f*iL) + ((1-f)*eL)
+#   
+#   dX <- (prob_dens / sum(prob_dens)) * 150
+#   
+#   #lines(dX+18, dY, col="#001388FF", lty=2)
+#   lines(dX+14, dY, col="#000000FF", lty=2)
+#   
+#   text(13, iM, 'unaware', srt=90, cex=textsize)
+#   text(13, eM, 'aware', srt=90, cex=textsize)
+#   
+#   dataM <- data.frame('explicit'=c(iM, eM))
+#   iLM <- dnorm(dataM$explicit, mean=iM, sd=iS)
+#   eLM <- dnorm(dataM$explicit, mean=eM, sd=eS)
+#   prob_dens_M <- (f*iLM) + ((1-f)*eLM)
+#   
+#   # lines(c(18,18+((prob_dens_M[1]/sum(prob_dens))*150)),c(iM,iM), col="#001388FF", lty=1)
+#   # lines(c(18,18+((prob_dens_M[2]/sum(prob_dens))*150)),c(eM,eM), col="#001388FF", lty=1)
+#   lines(c(14,14+((prob_dens_M[1]/sum(prob_dens))*150)),c(iM,iM), col="#000000FF", lty=1)
+#   lines(c(14,14+((prob_dens_M[2]/sum(prob_dens))*150)),c(eM,eM), col="#000000FF", lty=1)
+#   
+#   
+#   
+#   
+#   # # # # # # # # # # # # # # # 
+#   # TWO RATE MODEL PLOTS
+#   
+#   
+#   
+#   plot(-1000,-1000,main='',xlab='', ylab='', xlim=c(0,265), ylim=c(-7,40), ax=F, bty='n')
+#   text(0,35,'D: state-space model', font.main=1, cex=1.35, adj=0)
+#   title(xlab='time: trials per block', line = 0.5)
+#   title(ylab='deviation [°]', line = 2.5)
+#   
+#   plotBlocks(textsize=textsize)
+#   
+#   
+#   # group the participants in 2 sets:
+#   df <- getExplicitData() 
+#   
+#   iM <- median(df$explicit[which(df$group=='control')])
+#   eM <- median(df$explicit[which(df$group=='instructed')])
+#   iS <-     sd(df$explicit[which(df$group=='control')])
+#   eS <-     sd(df$explicit[which(df$group=='instructed')])
+#   
+#   iPD <- dnorm(df$explicit[which(df$group=='aiming')], mean=iM, sd=iS)
+#   ePD <- dnorm(df$explicit[which(df$group=='aiming')], mean=eM, sd=eS)
+#   
+#   participant <- sprintf('p%03d',c(1:24))
+#   strategy <- ePD > iPD
+#   split_aim <- data.frame(participant,strategy)
+#   split_aim$ppno <- c(1:24)
+#   
+#   groups <- getGroups()
+#   groupnames <- c()
+#   groupcols <- c()
+#   df <- read.csv('data/aiming-aim-trials.csv', stringsAsFactors = F)
+#   
+#   for (strategy in c(FALSE, TRUE)) {
+#     
+#     sdf <- df[,as.character(split_aim$participant[which(split_aim$strategy == strategy)])]
+#     
+#     #print(str(sdf))
+#     
+#     if (strategy) {
+#       group <- 'aiming'
+#       groupname <- 'aware aimers (N=9)'
+#       col.op.expl <- as.character(groups$col.op[which(groups$group == 'aiming')])
+#       col.op.impl <- as.character(groups$col.op[which(groups$group == 'aims')])
+#     } else {
+#       group <- 'aims'
+#       groupname <- 'unaware aimers (N=15)'
+#       col.op.expl <- '#0047AB'
+#       col.op.impl <- '#00d0d0'
+#       
+#       # azure blue: #007FFF
+#       # turquoise:  #00FFEF
+#       # cyan:       #00B7EB # implicit
+#       # cobalt:     #0047AB # explicit
+#       # 
+#       # 
+#     }
+#     #col.op <- as.character(groups$col.op[which(groups$group == group)])
+#     
+#     # not using transparent colors right now:
+#     #col.tr <- as.character(groups$col.tr[which(groups$group == group)])
+#     
+#     groupnames <- c(groupnames, groupname)
+#     groupcols <- c(groupcols, col.op.expl)
+#     
+#     blocks <- list(seq(1,32), seq(41,56), seq(65,80), seq(89,184), seq(201, 216), seq(233,248))
+#     
+#     for (block in blocks) {
+#       
+#       block <- unlist(block)
+#       trial_idx <- which(df$trial %in% block)
+#       bdf <- sdf[trial_idx,]
+#       
+#       CI <- apply(bdf, MARGIN=c(1), Reach::getConfidenceInterval, method='b')
+#       CI.lo <- as.numeric(CI[1,])
+#       CI.hi <- as.numeric(CI[2,])
+#       average <- rowMeans(bdf, na.rm=TRUE)
+#       
+#       polygon(x=c(block, rev(block)),y=c(CI.lo, rev(CI.hi)), col=t_col(col.op.expl, percent = 80), border=NA)
+#       lines(block, average, col=col.op.expl)
+#       
+#     }
+#     
+#   }
+#   
+#   
+#   # now we plot the exlude reach deviations for both sub-groups:
+#   
+#   df <- read.csv('data/aiming.csv', stringsAsFactors = F)
+#   
+#   for (strategy in c(FALSE, TRUE)) {
+#     
+#     sdf <- df[which(df$participant %in% split_aim$ppno[which(split_aim$strategy == strategy)]),]
+#     
+#     if (strategy) {
+#       group <- 'aiming'
+#       groupname <- 'aware aimers (N=9)'
+#       col.op.expl <- as.character(groups$col.op[which(groups$group == 'aiming')])
+#       col.op.impl <- as.character(groups$col.op[which(groups$group == 'aims')])
+#     } else {
+#       group <- 'aims'
+#       groupname <- 'unaware aimers (N=15)'
+#       col.op.expl <- '#0047AB'
+#       col.op.impl <- '#00d0d0'
+#     }
+#     
+#     baseline <- aggregate(reachdeviation_deg ~ participant, data=sdf[which(sdf$cursor == FALSE & sdf$strategy == 'none'),], FUN=mean, na.rm=TRUE)
+#     
+#     blocks <- list(seq(185,192), seq(193,200), seq(217,224), seq(225,232), seq(249,256), seq(257,264))  
+#     
+#     exclude <- sdf[which(sdf$trial %in% unlist(blocks) & sdf$strategy == 'exclude'),]
+#     
+#     for (participant in baseline$participant) {
+#       idx <- which(exclude$participant == participant)
+#       exclude$reachdeviation_deg[idx] <- exclude$reachdeviation_deg[idx] - baseline$reachdeviation_deg[which(baseline$participant == participant)]
+#     }
+#     
+#     for (block in blocks) {
+#       
+#       block <- unlist(block)
+#       
+#       CI.lo <- c()
+#       CI.hi <- c()
+#       average <- c()
+#       
+#       for (trial in unlist(block)) {
+#         reachdevs <- exclude$reachdeviation_deg[which(exclude$trial == trial)]
+#         CI <- Reach::getConfidenceInterval(reachdevs, method='b')
+#         CI.lo <- c(CI.lo, unlist(CI[1]))
+#         CI.hi <- c(CI.hi, unlist(CI[2]))
+#         average <- c(average, mean(reachdevs, na.rm=TRUE))
+#       }
+#       
+#       polygon(x=c(block, rev(block)),y=c(CI.lo, rev(CI.hi)), col=t_col(col.op.impl,percent = 80), border=NA)
+#       lines(block, average, col=col.op.impl)
+#       
+#     }  
+#     
+#   }
+#   
+#   # we fit the two-rate model to mean reach deviations in both sub-groups
+#   # is the fast process equal to aiming responses?
+#   
+#   df <- get2rateData(group='aiming')
+#   schedule <- df$rotation * -1
+#   
+#   
+#   for (strategy in c(FALSE, TRUE)) {
+#     
+#     if (strategy) {
+#       group <- 'aiming'
+#       groupname <- 'aware aimers (N=9)'
+#       col.op <- as.character(groups$col.op[which(groups$group == 'aiming')])
+#       #col.op.impl <- as.character(groups$col.op[which(groups$group == 'aims')])
+#     } else {
+#       group <- 'aims'
+#       groupname <- 'unaware aimers (N=15)'
+#       col.op <- '#0047AB'
+#       #col.op.impl <- '#00d0d0'
+#     }
+#     
+#     sdf <- df[,as.character(split_aim$participant[which(split_aim$strategy == strategy)])]
+#     reaches <- rowMeans(sdf, na.rm = TRUE)
+#     
+#     par <- Reach::twoRateFit(schedule       = schedule,
+#                              reaches        = reaches,
+#                              checkStability = TRUE)
+#     
+#     fit <- Reach::twoRateModel(par=par, schedule=schedule)
+#     
+#     lines(fit$total, col=col.op, lty=3)
+#     lines(fit$slow,  col=col.op, lty=2)
+#     lines(fit$fast,  col=col.op, lty=1)
+#     
+#     
+#   }
+#   
+#   groupnames <- c(groupnames, 'model output', 'slow', 'fast / aims', 'no-cursor blocks')
+#   groupcols  <- c(groupcols,  '#000000', '#000000', '#000000', '#BBBBBB')  
+#   lty        <- c(1,1,3,2,1,0)
+#   lwd        <- c(1,1,1,1,1,0)
+#   pch        <- c(NA,NA,NA,NA,NA,15)
+#   
+#   legend(-5,30,legend=groupnames,col=groupcols, bty='n', lty=lty, lwd=lwd, pch=pch, cex=textsize, pt.cex=1.5)
+#   
+#   axis(side=2, at=c(0,15,30))
+#   
+#   if (target %in% c('svg','pdf','tiff')) {
+#     dev.off()
+#   }
+#   
+# }
 
 
 fig4_Explicit_TwoRate <- function(target='inline') {
   
   if (target=='svg') {
-    svglite::svglite(file='doc/Fig4_tworate.svg', width=6, height=4.5, fix_text_size = FALSE)
+    svglite::svglite(file='doc/Fig4_tworate.svg', width=6, height=6, fix_text_size = FALSE)
   }
   if (target=='pdf') {
-    cairo_pdf(filename='doc/Fig4_tworate.pdf', width=6, height=4.5)
+    cairo_pdf(filename='doc/Fig4_tworate.pdf', width=6, height=6)
   }
   if (target=='tiff') {
     tiff(filename='doc/Fig4_tworate.tiff',
-         width=6, height=4.5, units='in', res=450,
+         width=6, height=6, units='in', res=450,
          type='cairo', compression='lzw')
   }
   
   textsize <- 1.0
   
-  layout(mat=matrix(c(1,2,3,4,4,4),nrow=2,ncol=3,byrow = TRUE))
+  layout( mat = matrix( c(1,1,2,2,3,3,4,4,4,5,5,5,6,6,6,7,7,7),
+                        nrow = 3,
+                        ncol = 6,
+                        byrow = TRUE),
+          heights = c(1.25,1.5,1.5)
+          )
+  #        heights = c(1.5,1,2)
   
-  par(mar=c(2,4,0,0.1))
+  par(mar=c(2.5,4,0,0.1))
   
   
   pp <- sprintf('p%03d',c(1:24))
@@ -5812,15 +6115,17 @@ fig4_Explicit_TwoRate <- function(target='inline') {
   groupnames <- c('control', 'instructed', 'aiming')
   
   grouplabels <- c()
-  groupcols <- c()
+  groupcols   <- c()
   
   set.seed(93)
+  
+  xpd=TRUE
   
   for (groupno in c(1:length(groupnames))) {
     
     group <- groupnames[groupno]
     
-    plot(-1000,-1000,main='',xlab='', ylab='', xlim=c(0,22), ylim=c(-7,40), ax=F, bty='n')
+    plot(-1000,-1000,main='',xlab='', ylab='', xlim=c(0,22), ylim=c(-2,40), ax=F, bty='n')
     text(0,35,c('A: control', 'B: instructed', 'C: aiming')[groupno], font.main=1, cex=1.35*textsize, adj=0)
     title(ylab='difference score [°]', line = 2.5)
     
@@ -5836,21 +6141,21 @@ fig4_Explicit_TwoRate <- function(target='inline') {
     explicit <- as.numeric(df['include',pp] - df['exclude',pp])
     CI <- Reach::getConfidenceInterval(explicit, method='b')
     avg <- mean(explicit)
-    polygon(x=c(2,6,6,2), y=c(rep(CI[1],2),rep(CI[2],2)), col=col.tr, border=NA)
-    lines(x=c(2,6), y=rep(avg,2), col=col.op)
+    polygon(x=c(2,6,6,2), y=c(rep(CI[1],2),rep(CI[2],2)), col=col.tr, border=NA, xpd=xpd)
+    lines(x=c(2,6), y=rep(avg,2), col=col.op, xpd=xpd)
     
     # text(0.4+(groupno*4)-2,-8.5, group, srt=90, adj=c(0,0.5), cex=0.8)
     
     # points(x=rep(10, length(explicit)), explicit, pch=16, col=col.tr, cex=2)
-    points(x=runif(length(explicit),min=9,max=11), explicit, pch=16, col=col.tr, cex=2)
+    points(x=runif(length(explicit),min=9,max=11), explicit, pch=16, col=col.tr, cex=2, xpd=xpd)
     
     dX <- density(explicit, n=81, from=-10, to=30, bw=2.5)$y
     dX <- (dX / sum(dX)) * 150
     dY <- seq(-10,30,.5)
     
-    polygon(x=c(0,dX,0)+14, y=c(dY[1],dY,dY[length(dY)]), border=NA, col=col.tr)
+    polygon(x=c(0,dX,0)+14, y=c(dY[1],dY,dY[length(dY)]), border=NA, col=col.tr, xpd=xpd)
     
-    lines(dX+14, dY, col=col.op)
+    lines(dX+14, dY, col=col.op, xpd=xpd)
     
     axis(side=2, at=c(0,15,30))
     
@@ -5868,13 +6173,13 @@ fig4_Explicit_TwoRate <- function(target='inline') {
   eL <- dnorm(data$explicit, mean=eM, sd=eS)
   prob_dens <- (f*iL) + ((1-f)*eL)
   
-  dX <- (prob_dens / sum(prob_dens)) * 150
+  dX <- (prob_dens / sum(prob_dens)) * 125
   
   #lines(dX+18, dY, col="#001388FF", lty=2)
-  lines(dX+14, dY, col="#000000FF", lty=2)
+  lines(dX+14, dY, col="#000000FF", lty=2, xpd=xpd)
   
-  text(13, iM, 'unaware', srt=90, cex=textsize)
-  text(13, eM, 'aware', srt=90, cex=textsize)
+  text(13, iM, 'unaware', srt=90, cex=textsize, xpd=xpd)
+  text(13, eM, 'aware', srt=90, cex=textsize, xpd=xpd)
   
   dataM <- data.frame('explicit'=c(iM, eM))
   iLM <- dnorm(dataM$explicit, mean=iM, sd=iS)
@@ -5883,23 +6188,14 @@ fig4_Explicit_TwoRate <- function(target='inline') {
   
   # lines(c(18,18+((prob_dens_M[1]/sum(prob_dens))*150)),c(iM,iM), col="#001388FF", lty=1)
   # lines(c(18,18+((prob_dens_M[2]/sum(prob_dens))*150)),c(eM,eM), col="#001388FF", lty=1)
-  lines(c(14,14+((prob_dens_M[1]/sum(prob_dens))*150)),c(iM,iM), col="#000000FF", lty=1)
-  lines(c(14,14+((prob_dens_M[2]/sum(prob_dens))*150)),c(eM,eM), col="#000000FF", lty=1)
+  lines(c(14,14+((prob_dens_M[1]/sum(prob_dens))*125)),c(iM,iM), col="#000000FF", lty=1)
+  lines(c(14,14+((prob_dens_M[2]/sum(prob_dens))*125)),c(eM,eM), col="#000000FF", lty=1)
   
 
   
   
   # # # # # # # # # # # # # # # 
   # TWO RATE MODEL PLOTS
-  
-  
-  
-  plot(-1000,-1000,main='',xlab='', ylab='', xlim=c(0,265), ylim=c(-7,40), ax=F, bty='n')
-  text(0,35,'D: state-space model', font.main=1, cex=1.35, adj=0)
-  title(xlab='time: trials per block', line = 0.5)
-  title(ylab='deviation [°]', line = 2.5)
-  
-  plotBlocks(textsize=textsize)
   
   
   # group the participants in 2 sets:
@@ -5918,124 +6214,12 @@ fig4_Explicit_TwoRate <- function(target='inline') {
   split_aim <- data.frame(participant,strategy)
   split_aim$ppno <- c(1:24)
   
-  groups <- getGroups()
-  groupnames <- c()
-  groupcols <- c()
-  df <- read.csv('data/aiming-aim-trials.csv', stringsAsFactors = F)
   
-  for (strategy in c(FALSE, TRUE)) {
-    
-    sdf <- df[,as.character(split_aim$participant[which(split_aim$strategy == strategy)])]
-    
-    #print(str(sdf))
-    
-    if (strategy) {
-      group <- 'aiming'
-      groupname <- 'aware aimers (N=9)'
-      col.op.expl <- as.character(groups$col.op[which(groups$group == 'aiming')])
-      col.op.impl <- as.character(groups$col.op[which(groups$group == 'aims')])
-    } else {
-      group <- 'aims'
-      groupname <- 'unaware aimers (N=15)'
-      col.op.expl <- '#0047AB'
-      col.op.impl <- '#00d0d0'
-      
-      # azure blue: #007FFF
-      # turquoise:  #00FFEF
-      # cyan:       #00B7EB # implicit
-      # cobalt:     #0047AB # explicit
-      # 
-      # 
-    }
-    #col.op <- as.character(groups$col.op[which(groups$group == group)])
-    
-    # not using transparent colors right now:
-    #col.tr <- as.character(groups$col.tr[which(groups$group == group)])
-    
-    groupnames <- c(groupnames, groupname)
-    groupcols <- c(groupcols, col.op.expl)
-    
-    blocks <- list(seq(1,32), seq(41,56), seq(65,80), seq(89,184), seq(201, 216), seq(233,248))
-    
-    for (block in blocks) {
-      
-      block <- unlist(block)
-      trial_idx <- which(df$trial %in% block)
-      bdf <- sdf[trial_idx,]
-      
-      CI <- apply(bdf, MARGIN=c(1), Reach::getConfidenceInterval, method='b')
-      CI.lo <- as.numeric(CI[1,])
-      CI.hi <- as.numeric(CI[2,])
-      average <- rowMeans(bdf, na.rm=TRUE)
-      
-      polygon(x=c(block, rev(block)),y=c(CI.lo, rev(CI.hi)), col=t_col(col.op.expl, percent = 80), border=NA)
-      lines(block, average, col=col.op.expl)
-      
-    }
-    
-  }
-  
-  
-  # now we plot the exlude reach deviations for both sub-groups:
-  
-  df <- read.csv('data/aiming.csv', stringsAsFactors = F)
-  
-  for (strategy in c(FALSE, TRUE)) {
-    
-    sdf <- df[which(df$participant %in% split_aim$ppno[which(split_aim$strategy == strategy)]),]
-    
-    if (strategy) {
-      group <- 'aiming'
-      groupname <- 'aware aimers (N=9)'
-      col.op.expl <- as.character(groups$col.op[which(groups$group == 'aiming')])
-      col.op.impl <- as.character(groups$col.op[which(groups$group == 'aims')])
-    } else {
-      group <- 'aims'
-      groupname <- 'unaware aimers (N=15)'
-      col.op.expl <- '#0047AB'
-      col.op.impl <- '#00d0d0'
-    }
-    
-    baseline <- aggregate(reachdeviation_deg ~ participant, data=sdf[which(sdf$cursor == FALSE & sdf$strategy == 'none'),], FUN=mean, na.rm=TRUE)
-    
-    blocks <- list(seq(185,192), seq(193,200), seq(217,224), seq(225,232), seq(249,256), seq(257,264))  
-    
-    exclude <- sdf[which(sdf$trial %in% unlist(blocks) & sdf$strategy == 'exclude'),]
-    
-    for (participant in baseline$participant) {
-      idx <- which(exclude$participant == participant)
-      exclude$reachdeviation_deg[idx] <- exclude$reachdeviation_deg[idx] - baseline$reachdeviation_deg[which(baseline$participant == participant)]
-    }
-    
-    for (block in blocks) {
-      
-      block <- unlist(block)
-      
-      CI.lo <- c()
-      CI.hi <- c()
-      average <- c()
-      
-      for (trial in unlist(block)) {
-        reachdevs <- exclude$reachdeviation_deg[which(exclude$trial == trial)]
-        CI <- Reach::getConfidenceInterval(reachdevs, method='b')
-        CI.lo <- c(CI.lo, unlist(CI[1]))
-        CI.hi <- c(CI.hi, unlist(CI[2]))
-        average <- c(average, mean(reachdevs, na.rm=TRUE))
-      }
-      
-      polygon(x=c(block, rev(block)),y=c(CI.lo, rev(CI.hi)), col=t_col(col.op.impl,percent = 80), border=NA)
-      lines(block, average, col=col.op.impl)
-      
-    }  
-    
-  }
-  
-  # we fit the two-rate model to mean reach deviations in both sub-groups
-  # is the fast process equal to aiming responses?
   
   df <- get2rateData(group='aiming')
   schedule <- df$rotation * -1
   
+  twoRatePars <- list()
   
   for (strategy in c(FALSE, TRUE)) {
     
@@ -6058,24 +6242,484 @@ fig4_Explicit_TwoRate <- function(target='inline') {
                              reaches        = reaches,
                              checkStability = TRUE)
     
-    fit <- Reach::twoRateModel(par=par, schedule=schedule)
-    
-    lines(fit$total, col=col.op, lty=3)
-    lines(fit$slow,  col=col.op, lty=2)
-    lines(fit$fast,  col=col.op, lty=1)
-    
+    twoRatePars[[as.character(strategy)]] <- par
     
   }
   
-  groupnames <- c(groupnames, 'model output', 'slow', 'fast / aims', 'no-cursor blocks')
-  groupcols  <- c(groupcols,  '#000000', '#000000', '#000000', '#BBBBBB')  
-  lty        <- c(1,1,3,2,1,0)
-  lwd        <- c(1,1,1,1,1,0)
-  pch        <- c(NA,NA,NA,NA,NA,15)
   
-  legend(-5,30,legend=groupnames,col=groupcols, bty='n', lty=lty, lwd=lwd, pch=pch, cex=textsize, pt.cex=1.5)
+  
+  plot(-1000,-1000,main='',xlab='', ylab='', xlim=c(88,265), ylim=c(-7,40), ax=F, bty='n')
+  text(88,35,'D: model fit (unaware, N=15)', font.main=1, cex=1.35, adj=0)
+  title(xlab='trials', line = 1.0)
+  title(ylab='deviation [°]', line = 2.5)
+  
+  strategy <- FALSE
+  
+  sdf <- df[,as.character(split_aim$participant[which(split_aim$strategy == strategy)])]
+  reaches <- rowMeans(sdf, na.rm = TRUE)
+  
+  par <- twoRatePars[[as.character(strategy)]]
+  
+  if (strategy) {
+    group <- 'aiming'
+    groupname <- 'aware aimers (N=9)'
+    col.op.expl <- as.character(groups$col.op[which(groups$group == 'aiming')])
+    col.op.impl <- as.character(groups$col.op[which(groups$group == 'aims')])
+  } else {
+    group <- 'aims'
+    groupname <- 'unaware aimers (N=15)'
+    col.op.expl <- '#0047AB'
+    col.op.impl <- '#00d0d0'
+  }
+  
+  blocks <- list(seq(89,184), seq(201, 216), seq(233,248))
+  
+  for (block in blocks) {
+    
+    block <- unlist(block)
+    trial_idx <- which(df$trial %in% block)
+    bdf <- sdf[trial_idx,]
+    
+    CI <- apply(bdf, MARGIN=c(1), Reach::getConfidenceInterval, method='b')
+    CI.lo <- as.numeric(CI[1,])
+    CI.hi <- as.numeric(CI[2,])
+    average <- rowMeans(bdf, na.rm=TRUE)
+    
+    polygon(x=c(block, rev(block)),y=c(CI.lo, rev(CI.hi)), col=t_col(col.op.expl, percent = 80), border=NA)
+    # lines(block, average, col=col.op.expl)
+    
+  }
+  
+  par <- twoRatePars[[as.character(strategy)]]
+  
+  fit <- Reach::twoRateModel(par=par, schedule=schedule)
+  
+  # str(fit)
+  
+  lines(fit$total, col=col.op.expl, lty=1)
+  lines(fit$slow,  col=col.op.expl, lty=2)
+  lines(fit$fast,  col=col.op.expl, lty=3)  
+  
+  adf <- read.csv('data/aiming-aim-trials.csv', stringsAsFactors = F)
+  sdf <- adf[,as.character(split_aim$participant[which(split_aim$strategy == strategy)])]
+  blocks <- list(seq(1,32), seq(41,56), seq(65,80), seq(89,184), seq(201, 216), seq(233,248))
+  for (block in blocks) {
+    
+    block <- unlist(block)
+    trial_idx <- which(adf$trial %in% block)
+    bdf <- sdf[trial_idx,]
+    
+    CI <- apply(bdf, MARGIN=c(1), Reach::getConfidenceInterval, method='b')
+    CI.lo <- as.numeric(CI[1,])
+    CI.hi <- as.numeric(CI[2,])
+    average <- rowMeans(bdf, na.rm=TRUE)
+    
+    polygon(x=c(block, rev(block)),y=c(CI.lo, rev(CI.hi)), col=t_col('#CCCCCC', percent = 80), border=NA)
+    lines(block, average, col='#CCCCCC', lty=1)
+    
+  }
+  
+  
+  axis(side=1,at=c(89,264))
+  axis(side=2,at=c(0,15,30))
+  
+  legend(x=150, y=15,
+         legend=c('slow', 'fast', 'sum','aims'),
+         lty=c(2,3,1,1), seg.len=1.5,
+         col=c(col.op.expl,col.op.expl,col.op.expl,'#CCCCCC'),
+         bty='n',
+         ncol=2)
+  
+  
+  plot(-1000,-1000,main='',xlab='', ylab='', xlim=c(88,265), ylim=c(-7,40), ax=F, bty='n')
+  text(88,35,'E: model fit (aware, N=9)', font.main=1, cex=1.35, adj=0)
+  title(xlab='trials', line = 1)
+  title(ylab='deviation [°]', line = 2.5)
+  
+  
+  strategy <- TRUE
+  
+  sdf <- df[,as.character(split_aim$participant[which(split_aim$strategy == strategy)])]
+  reaches <- rowMeans(sdf, na.rm = TRUE)
+  
+  par <- twoRatePars[[as.character(strategy)]]
+  
+  if (strategy) {
+    group <- 'aiming'
+    groupname <- 'aware aimers (N=9)'
+    col.op.expl <- as.character(groups$col.op[which(groups$group == 'aiming')])
+    col.op.impl <- as.character(groups$col.op[which(groups$group == 'aims')])
+  } else {
+    group <- 'aims'
+    groupname <- 'unaware aimers (N=15)'
+    col.op.expl <- '#0047AB'
+    col.op.impl <- '#00d0d0'
+  }
+  
+  blocks <- list(seq(89,184), seq(201, 216), seq(233,248))
+  
+  for (block in blocks) {
+    
+    block <- unlist(block)
+    trial_idx <- which(df$trial %in% block)
+    bdf <- sdf[trial_idx,]
+    
+    CI <- apply(bdf, MARGIN=c(1), Reach::getConfidenceInterval, method='b')
+    CI.lo <- as.numeric(CI[1,])
+    CI.hi <- as.numeric(CI[2,])
+    average <- rowMeans(bdf, na.rm=TRUE)
+    
+    polygon(x=c(block, rev(block)),y=c(CI.lo, rev(CI.hi)), col=t_col(col.op.expl, percent = 80), border=NA)
+    # lines(block, average, col=col.op.expl)
+    
+  }
+  
+  par <- twoRatePars[[as.character(strategy)]]
+  
+  fit <- Reach::twoRateModel(par=par, schedule=schedule)
+  
+  # str(fit)
+  
+  lines(fit$total, col=col.op.expl, lty=1)
+  lines(fit$slow,  col=col.op.expl, lty=2)
+  lines(fit$fast,  col=col.op.expl, lty=3)
+  
+  #### ADD THE AIMING?
+  df <- read.csv('data/aiming-aim-trials.csv', stringsAsFactors = F)
+  sdf <- df[,as.character(split_aim$participant[which(split_aim$strategy == strategy)])]
+  blocks <- list(seq(1,32), seq(41,56), seq(65,80), seq(89,184), seq(201, 216), seq(233,248))
+  for (block in blocks) {
+    
+    block <- unlist(block)
+    trial_idx <- which(df$trial %in% block)
+    bdf <- sdf[trial_idx,]
+    
+    CI <- apply(bdf, MARGIN=c(1), Reach::getConfidenceInterval, method='b')
+    CI.lo <- as.numeric(CI[1,])
+    CI.hi <- as.numeric(CI[2,])
+    average <- rowMeans(bdf, na.rm=TRUE)
+    
+    polygon(x=c(block, rev(block)),y=c(CI.lo, rev(CI.hi)), col=t_col('#CCCCCC', percent = 80), border=NA)
+    lines(block, average, col='#CCCCCC', lty=1)
+    
+  }
+  
+  
+  axis(side=1,at=c(89,264))
+  axis(side=2,at=c(0,15,30))
+  
+  # legend(x=134, y=15,
+  #        legend=c('slow', 'fast', 'sum'),
+  #        lty=c(2,1,3), seg.len=1.5,
+  #        bty='n',
+  #        ncol=3)
+  legend(x=150, y=17,
+         legend=c('slow', 'fast', 'sum','aims'),
+         lty=c(2,3,1,1), seg.len=1.5,
+         col=c(col.op.impl,col.op.impl,col.op.impl,'#CCCCCC'),
+         bty='n',
+         ncol=2)
+  
+  
+  # # # # # # # # # # # # # # # # # # # # 3 # # # # # # #
+  # process comparison with explicit & implicit measures
+  
+  # UNAWARE -----
+  
+  plot(-1000,-1000,main='',xlab='', ylab='', xlim=c(176,265), ylim=c(-2,45), ax=F, bty='n')
+  text(176,40,'F: processes and data (unaware)', font.main=1, cex=1.35, adj=0)
+  title(xlab='trials', line = 1.5)
+  title(ylab='deviation [°]', line = 2.5)
+  
+
+  groups <- getGroups()
+  groupnames <- c()
+  groupcols <- c()
+  df <- read.csv('data/aiming-aim-trials.csv', stringsAsFactors = F)
+  
+  strategy <- FALSE
+  
+  sdf <- df[,as.character(split_aim$participant[which(split_aim$strategy == strategy)])]
+    
+  group <- 'aims'
+  groupname <- 'unaware aimers (N=15)'
+  col.op.expl <- '#0047AB'
+  col.op.impl <- '#00d0d0'
+      
+  groupnames <- c(groupnames, groupname)
+  groupcols <- c(groupcols, col.op.expl)
+  
+  # blocks <- list(seq(1,32), seq(41,56), seq(65,80), seq(89,184), seq(201, 216), seq(233,248))
+  blocks <- list(seq(177,184), seq(201, 216), seq(233,248))
+  blocks <- list(seq(177,184), seq(209, 216), seq(241,248))
+
+  par <- twoRatePars[[as.character(strategy)]]
+  fit <- Reach::twoRateModel(par=par, schedule=schedule)
+  
+  for (block in blocks) {
+    
+    block <- unlist(block)
+    trial_idx <- which(df$trial %in% block)
+    bdf <- sdf[trial_idx,]
+    
+    CI <- apply(bdf, MARGIN=c(1), Reach::getConfidenceInterval, method='b')
+    CI.lo <- as.numeric(CI[1,])
+    CI.hi <- as.numeric(CI[2,])
+    average <- rowMeans(bdf, na.rm=TRUE)
+    
+    polygon(x=c(block, rev(block)),y=c(CI.lo, rev(CI.hi)), col=t_col(col.op.expl, percent = 80), border=NA)
+    lines(block, average, col=col.op.expl)
+    
+    lines(block, fit$fast[block],  col=col.op.expl, lty=3)
+    
+  }
+  
+  
+  # now we plot the exlude reach deviations for both sub-groups:
+  
+  df <- read.csv('data/aiming.csv', stringsAsFactors = F)
+  
+  sdf <- df[which(df$participant %in% split_aim$ppno[which(split_aim$strategy == strategy)]),]
+  
+  group <- 'aims'
+  groupname <- 'unaware aimers (N=15)'
+  col.op.expl <- '#0047AB'
+  col.op.impl <- '#00d0d0'
+  
+  baseline <- aggregate(reachdeviation_deg ~ participant, data=sdf[which(sdf$cursor == FALSE & sdf$strategy == 'none'),], FUN=mean, na.rm=TRUE)
+  
+  blocks <- list(seq(185,192), seq(193,200), seq(217,224), seq(225,232), seq(249,256), seq(257,264))  
+  
+  exclude <- sdf[which(sdf$trial %in% unlist(blocks) & sdf$strategy == 'exclude'),]
+  
+  #col.op <- '#0047AB'
+
+  for (participant in baseline$participant) {
+    idx <- which(exclude$participant == participant)
+    exclude$reachdeviation_deg[idx] <- exclude$reachdeviation_deg[idx] - baseline$reachdeviation_deg[which(baseline$participant == participant)]
+  }
+  
+  for (block in blocks) {
+    
+    block <- unlist(block)
+    
+    CI.lo <- c()
+    CI.hi <- c()
+    average <- c()
+    
+    for (trial in unlist(block)) {
+      reachdevs <- exclude$reachdeviation_deg[which(exclude$trial == trial)]
+      CI <- Reach::getConfidenceInterval(reachdevs, method='b')
+      CI.lo <- c(CI.lo, unlist(CI[1]))
+      CI.hi <- c(CI.hi, unlist(CI[2]))
+      average <- c(average, mean(reachdevs, na.rm=TRUE))
+    }
+    
+    polygon(x=c(block, rev(block)),y=c(CI.lo, rev(CI.hi)), col=t_col(col.op.impl,percent = 80), border=NA)
+    lines(block, average, col=col.op.impl)
+    
+
+    
+  }
+  
+  blocks <- list(seq(185,200), seq(217,232), seq(249,264))  
+  for (block in blocks) {
+    block <- unlist(block)
+    lines(block, fit$slow[block],  col=col.op.impl, lty=2)
+  }  
+  
+  # we fit the two-rate model to mean reach deviations in both sub-groups
+  # is the fast process equal to aiming responses?
+  
+  # df <- get2rateData(group='aiming')
+  # schedule <- df$rotation * -1
+  
+  
+  # group <- 'aims'
+  # groupname <- 'unaware aimers (N=15)'
+  # col.op <- '#0047AB'
+  # 
+  # # sdf <- df[,as.character(split_aim$participant[which(split_aim$strategy == strategy)])]
+  # # reaches <- rowMeans(sdf, na.rm = TRUE)
+  # 
+  # par <- twoRatePars[[as.character(strategy)]]
+  # 
+  # fit <- Reach::twoRateModel(par=par, schedule=schedule)
+  # 
+  # 
+  # 
+  # lines(c(177:264), fit$total[c(177:264)], col=col.op, lty=3)
+  # lines(c(177:264), fit$slow[c(177:264)],  col=col.op, lty=2)
+  # lines(c(177:264), fit$fast[c(177:264)],  col=col.op, lty=1)
+    
+    
+  
+  # groupnames <- c(groupnames, 'model output', 'slow', 'fast / aims', 'no-cursor blocks')
+  # groupcols  <- c(groupcols,  '#000000', '#000000', '#000000', '#BBBBBB')  
+  # lty        <- c(1,1,3,2,1,0)
+  # lwd        <- c(1,1,1,1,1,0)
+  # pch        <- c(NA,NA,NA,NA,NA,15)
+  # 
+  # legend(-5,30,legend=groupnames,col=groupcols, bty='n', lty=lty, lwd=lwd, pch=pch, cex=textsize, pt.cex=1.5)
+  
+  
+  legend(201, 37,
+         legend=c('fast', 'aims', 'slow', 'exclusion'),
+         col=c(col.op.expl,col.op.expl,col.op.impl,col.op.impl),
+         lty=c(3,1,2,1),
+         ncol=2,
+         seg.len=1.5,
+         bty='n',
+         cex=1.0)
+  
   
   axis(side=2, at=c(0,15,30))
+  
+  axis(side=1, at=c(177,200), las=2)
+  axis(side=1, at=c(209,232), las=2)
+  axis(side=1, at=c(241,264), las=2)
+
+  # AWARE ----
+  
+  
+  plot(-1000,-1000,main='',xlab='', ylab='', xlim=c(176,265), ylim=c(-2,45), ax=F, bty='n')
+  text(176,40,'G: processes and data (aware)', font.main=1, cex=1.35, adj=0)
+  title(xlab='trials', line = 1.5)
+  title(ylab='deviation [°]', line = 2.5)
+  
+
+  groups <- getGroups()
+  groupnames <- c()
+  groupcols <- c()
+  df <- read.csv('data/aiming-aim-trials.csv', stringsAsFactors = F)
+  
+  strategy <- TRUE
+  
+  sdf <- df[,as.character(split_aim$participant[which(split_aim$strategy == strategy)])]
+    
+  group <- 'aiming'
+  groupname <- 'aware aimers (N=9)'
+  col.op.expl <- as.character(groups$col.op[which(groups$group == 'aiming')])
+  col.op.impl <- as.character(groups$col.op[which(groups$group == 'aims')])
+
+  groupnames <- c(groupnames, groupname)
+  groupcols <- c(groupcols, col.op.expl)
+  
+  # blocks <- list(seq(1,32), seq(41,56), seq(65,80), seq(89,184), seq(201, 216), seq(233,248))
+  blocks <- list(seq(177,184), seq(209, 216), seq(241,248))
+  
+  par <- twoRatePars[[as.character(strategy)]]
+  fit <- Reach::twoRateModel(par=par, schedule=schedule)
+  
+  for (block in blocks) {
+    
+    block <- unlist(block)
+    trial_idx <- which(df$trial %in% block)
+    bdf <- sdf[trial_idx,]
+    
+    CI <- apply(bdf, MARGIN=c(1), Reach::getConfidenceInterval, method='b')
+    CI.lo <- as.numeric(CI[1,])
+    CI.hi <- as.numeric(CI[2,])
+    average <- rowMeans(bdf, na.rm=TRUE)
+    
+    polygon(x=c(block, rev(block)),y=c(CI.lo, rev(CI.hi)), col=t_col(col.op.expl, percent = 80), border=NA)
+    lines(block, average, col=col.op.expl)
+    
+    lines(block, fit$fast[block],  col=col.op.expl, lty=3)
+    
+  }
+  # now we plot the exlude reach deviations for both sub-groups:
+  
+  df <- read.csv('data/aiming.csv', stringsAsFactors = F)
+  
+  sdf <- df[which(df$participant %in% split_aim$ppno[which(split_aim$strategy == strategy)]),]
+    
+  group <- 'aiming'
+  groupname <- 'aware aimers (N=9)'
+  col.op.expl <- as.character(groups$col.op[which(groups$group == 'aiming')])
+  col.op.impl <- as.character(groups$col.op[which(groups$group == 'aims')])
+
+  baseline <- aggregate(reachdeviation_deg ~ participant, data=sdf[which(sdf$cursor == FALSE & sdf$strategy == 'none'),], FUN=mean, na.rm=TRUE)
+  
+  blocks <- list(seq(185,192), seq(193,200), seq(217,224), seq(225,232), seq(249,256), seq(257,264))  
+  
+  exclude <- sdf[which(sdf$trial %in% unlist(blocks) & sdf$strategy == 'exclude'),]
+  
+  for (participant in baseline$participant) {
+    idx <- which(exclude$participant == participant)
+    exclude$reachdeviation_deg[idx] <- exclude$reachdeviation_deg[idx] - baseline$reachdeviation_deg[which(baseline$participant == participant)]
+  }
+  
+  # par <- twoRatePars[[as.character(strategy)]]
+  # fit <- Reach::twoRateModel(par=par, schedule=schedule)
+  
+  
+  for (block in blocks) {
+    
+    block <- unlist(block)
+    
+    CI.lo <- c()
+    CI.hi <- c()
+    average <- c()
+    
+    for (trial in unlist(block)) {
+      reachdevs <- exclude$reachdeviation_deg[which(exclude$trial == trial)]
+      CI <- Reach::getConfidenceInterval(reachdevs, method='b')
+      CI.lo <- c(CI.lo, unlist(CI[1]))
+      CI.hi <- c(CI.hi, unlist(CI[2]))
+      average <- c(average, mean(reachdevs, na.rm=TRUE))
+    }
+    
+    polygon(x=c(block, rev(block)),y=c(CI.lo, rev(CI.hi)), col=t_col(col.op.impl,percent = 80), border=NA)
+    lines(block, average, col=col.op.impl)
+    
+    # lines(block, fit$slow[block],  col=col.op.impl, lty=2)
+    
+  }  
+  
+  blocks <- list(seq(185,200), seq(217,232), seq(249,264))  
+  for (block in blocks) {
+    block <- unlist(block)
+    lines(block, fit$slow[block],  col=col.op.impl, lty=2)
+  }  
+  
+  legend(201, 37,
+         legend=c('fast', 'aims', 'slow', 'exclusion'),
+         col=c(col.op.expl,col.op.expl,col.op.impl,col.op.impl),
+         lty=c(3,1,2,1),
+         ncol=2,
+         seg.len=1.5,
+         bty='n',
+         cex=1.0)
+  
+  
+  # we fit the two-rate model to mean reach deviations in both sub-groups
+  # is the fast process equal to aiming responses?
+  
+  # df <- get2rateData(group='aiming')
+  # schedule <- df$rotation * -1
+  
+  # group <- 'aiming'
+  # groupname <- 'aware aimers (N=9)'
+  # col.op <- as.character(groups$col.op[which(groups$group == 'aiming')])
+    
+  # sdf <- df[,as.character(split_aim$participant[which(split_aim$strategy == strategy)])]
+  # reaches <- rowMeans(sdf, na.rm = TRUE)
+    
+  # par <- twoRatePars[[as.character(strategy)]]
+  
+  # fit <- Reach::twoRateModel(par=par, schedule=schedule)
+    
+  # lines(c(177:264), fit$total[c(177:264)], col=col.op, lty=3)
+  # lines(c(177:264), fit$slow[c(177:264)],  col=col.op, lty=2)
+  # lines(c(177:264), fit$fast[c(177:264)],  col=col.op, lty=1)
+
+  
+  axis(side=2, at=c(0,15,30))
+  
+  axis(side=1, at=c(177,200), las=2)
+  axis(side=1, at=c(209,232), las=2)
+  axis(side=1, at=c(241,264), las=2)
   
   if (target %in% c('svg','pdf','tiff')) {
     dev.off()
