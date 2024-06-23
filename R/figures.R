@@ -4966,7 +4966,7 @@ fig1_Additivity <- function(target='inline') {
         lty=3,
         col='black')
   
-  legend(15,45,c( expression('-1 in slope 95% CI'),
+  legend(12,45,c( expression('-1 in slope 95% CI'),
                   expression('-1 not in slope 95% CI') ),
          lty=1, bty='n', seg.len=1.2,
          col=c('#6666ffcc','#ff6666cc') )
@@ -7398,13 +7398,13 @@ visual_abstract <- function(target='inline') {
        main='',xlab='',ylab='',
        bty='n',ax=F,asp=1)
   
-  title(xlab='explicit / adaptation',line=1.9,cex.lab=1.5)
-  title(ylab='implicit / adaptation',line=1.9,cex.lab=1.5)
+  title(xlab='explicit / adaptation',line=1.9,cex.lab=1.5, col.lab='#666666')
+  title(ylab='implicit / adaptation',line=1.9,cex.lab=1.5, col.lab='#666666')
 
   # text(-0.2,1.15,'A: aiming reports', font.main=1, cex=1.35*1.5, adj=c(0,0.5))
   
   
-  lines(c(0,0,1.1),c(1.1,0,0),col='#999999',lw=1,lty=1)
+  lines(c(0,0,1.1),c(1.1,0,0),col='#666666',lw=1,lty=1)
   lines(c(-0.1,1.1),c(1.1,-0.1),col=solidcolors[2],lw=2,lty=1)
   
   # plot stuff with aiming reports
@@ -7417,25 +7417,47 @@ visual_abstract <- function(target='inline') {
   idx <- which(aim.df$norm.expl > -0.2 & aim.df$norm.expl < 1.2 &aim.df$norm.impl > -0.2 & aim.df$norm.impl < 1.2)
   
   
-  legend( x = 0.6,
+  legend( x = 0.5,
           y = 1.0575,
           legend = c('predicted','real data'),
           bty='n',
           pch=c(NA,16),
-          lw=c(2,NA),
+          lw=c(3,NA),
           col=rev(solidcolors),
-          cex=1.2)
+          cex=1.6,
+          xpd=TRUE)
   
-  text(0.5,1.15,'data shows:\nadaptation ≠ explicit + implicit',
+  # text(0.5,1.15,'data shows:\nadaptation ≠ explicit + implicit',
+  #      font.main=1, cex=1.35*1.5,
+  #      adj=c(0.5,0), xpd=TRUE,
+  #      col='#666666')
+  
+  text(0.5,1.15,'data shows:\n',
        font.main=1, cex=1.35*1.5,
-       adj=c(0.5,0), xpd=TRUE)
+       adj=c(0.5,0), xpd=TRUE,
+       col='#666666')
+  text(0.5,1.15,expression('\nadaptation ≠ explicit' * phantom(' + ') * 'implicit'),
+       font.main=1, cex=1.35*1.5,
+       adj=c(0.5,0), xpd=TRUE,
+       col='#666666')
+  text(0.5,1.15,expression(phantom('\nadaptation ≠ explicit') * ' + ' * phantom('implicit')),
+       font.main=1, cex=1.35*1.5,
+       adj=c(0.5,0), xpd=TRUE,
+       col='#000000')
+
   
-  text(0.5,0.5,
-       'additivity predicts:\nimplicit + explicit = adaptation',
-       cex=1.5,
-       adj=c(0.5,0.5),srt=-45,
-       col=solidcolors[2])
-  
+  # title(expression("Hair color" *
+  #                    phantom(" and Eye color")),col.main="red")
+  # 
+  # title(expression(phantom("Hair color and ") *
+  #                    "Eye color"),col.main="blue")
+
+  # text(0.5,0.5,
+  #      'additivity predicts:\nimplicit + explicit = adaptation',
+  #      cex=1.5,
+  #      adj=c(0.5,0.5),srt=-45,
+  #      col=solidcolors[2])
+  # 
   axis(1,at=c(0,1),cex.axis=1.3)
   axis(2,at=c(0,1),cex.axis=1.3)
   
