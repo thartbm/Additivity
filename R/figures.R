@@ -7369,7 +7369,8 @@ visual_abstract <- function(target='inline') {
   
   
   # get all data:
-  df <- bindExtraData(methods=c('aim.reports'))
+  # df <- bindExtraData(methods=c('aim.reports'))
+  df <- bindExtraData(methods=c('aim.reports','PDP.difference'))
   
   # make sure that each rotation is present for both aim and PDP subsets of data
   use_rotations <- as.numeric(names(which(apply(table(df$rotation, df$explicit.method) > 0, 1, all))))
@@ -7385,9 +7386,13 @@ visual_abstract <- function(target='inline') {
   
   
   solidcolors =  c(rgb(229, 22,  54,  255, max = 255), 
-                   rgb(22,  54,  255, 255, max = 255))
-  transcolors =  c(rgb(229, 22,  54,  66,  max = 255), 
-                   rgb(136, 153, 255, 47,  max = 255))
+                   rgb(22,  54,  255, 255, max = 255),
+                   rgb(64, 224,  208, 255, max = 255),
+                   rgb(208, 22,  208, 255, max = 255))
+  transcolors =  c(rgb(229, 22,  54,  57,  max = 255), 
+                   rgb(136, 153, 255, 57,  max = 255),
+                   rgb(64, 224,  208, 57,  max = 255),
+                   rgb(208, 22,  208, 57,  max = 255))
   
   
   # # # # # # # # # # 3 # # 
@@ -7404,35 +7409,44 @@ visual_abstract <- function(target='inline') {
   # text(-0.2,1.15,'A: aiming reports', font.main=1, cex=1.35*1.5, adj=c(0,0.5))
   
   
-  lines(c(0,0,1.1),c(1.1,0,0),col='#666666',lw=1,lty=1)
-  lines(c(-0.1,1.1),c(1.1,-0.1),col=solidcolors[2],lw=2,lty=1)
-  
-  # plot stuff with aiming reports
-  
-  aim.df <- df[which(df$explicit.method == 'aim.reports'),]
-  
-  points(aim.df$norm.expl, aim.df$norm.impl, pch=16, col=transcolors[1], cex=1.2, xpd=TRUE)
+  lines(c(0,0,1.0),c(1.0,0,0),col='#CCCCCC',lw=1,lty=1)
+  #lines(c(-0.1,1.1),c(1.1,-0.1),col=solidcolors[4],lw=2,lty=1)
+  polygon(x = c(-0.10,  1.00,  1.10, 0.00),
+          y = c( 1.00, -0.10,  0.00, 1.10),
+          border=NA, col=transcolors[4] )
+  lines(c(0.01,0.99),c(0.99,0.01),col=solidcolors[4],lw=2.4,lty=1)
   
 
-  idx <- which(aim.df$norm.expl > -0.2 & aim.df$norm.expl < 1.2 &aim.df$norm.impl > -0.2 & aim.df$norm.impl < 1.2)
+  # points(df$norm.expl, df$norm.impl, pch=16, col=transcolors[2], cex=1.2, xpd=TRUE)
+  
+  aim.df <- df[which(df$explicit.method == 'aim.reports'),]
+  points(aim.df$norm.expl, aim.df$norm.impl, pch=16, col=transcolors[3], cex=1.2, xpd=TRUE)
+   
+  # pdp.df <- df[which(df$explicit.method == 'PDP.difference'),]
+  # points(pdp.df$norm.expl, pdp.df$norm.impl, pch=16, col=transcolors[3], cex=1.2, xpd=TRUE)
   
   
-  legend( x = 0.5,
-          y = 1.0575,
-          legend = c('predicted','real data'),
+  legend( x = 0.80,
+          y = 1.1575,
+          legend = c('prediction\n(±10%)', 'data'
+                     # sprintf('data (N=%d)',length(aim.df$norm.expl)) #,
+                     # sprintf('PDP (N=%d)',length(pdp.df$norm.expl))
+                     ),
           bty='n',
-          pch=c(NA,16),
-          lw=c(3,NA),
-          col=rev(solidcolors),
+          pch=c(NA,16,16),
+          lw=c(3,NA,NA),
+          col=solidcolors[c(4,3)],
           cex=1.6,
-          xpd=TRUE)
+          xpd=TRUE,
+          seg.len = 1.5,
+          x.intersp = 0.5)
   
   # text(0.5,1.15,'data shows:\nadaptation ≠ explicit + implicit',
   #      font.main=1, cex=1.35*1.5,
   #      adj=c(0.5,0), xpd=TRUE,
   #      col='#666666')
   
-  text(0.5,1.15,'data shows:\n',
+  text(0.5,1.15,'no pattern in data:\n',
        font.main=1, cex=1.35*1.5,
        adj=c(0.5,0), xpd=TRUE,
        col='#666666')
@@ -7443,7 +7457,8 @@ visual_abstract <- function(target='inline') {
   text(0.5,1.15,expression(phantom('\nadaptation ≠ explicit') * ' + ' * phantom('implicit')),
        font.main=1, cex=1.35*1.5,
        adj=c(0.5,0), xpd=TRUE,
-       col='#000000')
+       # col='#FF0000',
+       col=solidcolors[1])
 
   
   # title(expression("Hair color" *
