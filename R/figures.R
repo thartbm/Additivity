@@ -5357,6 +5357,13 @@ fig3_ExperimentRsults <- function(target='inline') {
     adaptation <- as.numeric( colMeans( dfr[ which( dfr$block %in% c(23,27,31) ), pp]) - 
                                 colMeans( dfr[ which( dfr$block %in% c(4,7,10)   ), pp])   )
     
+    # print(adaptation)
+    # print(include)
+    print(groupnames[groupno])
+    # print(lm(adaptation ~ include))
+    print(cor.test(adaptation, include))
+    print(lm(adaptation ~ include))
+    
     CI <- Reach::getConfidenceInterval(adaptation, method='b')
     avg <- mean(adaptation)
     xoffset <- (groupno*2) - 1
@@ -5366,7 +5373,7 @@ fig3_ExperimentRsults <- function(target='inline') {
     points(x=rep(xoffset+1, length(adaptation)), adaptation, pch=16, col=col.tr)
     
     #text(x=(groupno*8)-1.5,y=-1,labels='adaptation', adj=c(0,.5), srt=-45, cex=textsize)
-    print(xoffset)
+    # print(xoffset)
   }
   
   df <- read.csv('data/aiming-aim-blocks.csv', stringsAsFactors = F)
@@ -7426,9 +7433,9 @@ visual_abstract <- function(target='inline') {
   # points(pdp.df$norm.expl, pdp.df$norm.impl, pch=16, col=transcolors[3], cex=1.2, xpd=TRUE)
   
   
-  legend( x = 0.80,
-          y = 1.1575,
-          legend = c('prediction\n(±10%)', 'data'
+  legend( x = 0.75,
+          y = 1.12,
+          legend = c('predicted\n± 10%', 'data'
                      # sprintf('data (N=%d)',length(aim.df$norm.expl)) #,
                      # sprintf('PDP (N=%d)',length(pdp.df$norm.expl))
                      ),
@@ -7445,6 +7452,11 @@ visual_abstract <- function(target='inline') {
   #      font.main=1, cex=1.35*1.5,
   #      adj=c(0.5,0), xpd=TRUE,
   #      col='#666666')
+  
+  # text(0.5,-0.125,
+  #      expression(additivity~predicts: {frac(adaptation,adaptation) == 1} == frac(explicit,adaptation) + frac(implicit,adaptation)),
+  #      adj=c(0.5,0.5),
+  #      cex=0.8)
   
   text(0.5,1.15,'no pattern in data:\n',
        font.main=1, cex=1.35*1.5,
@@ -7484,6 +7496,7 @@ visual_abstract <- function(target='inline') {
   }
   
 }
+
 
 
 # fig7_Relations_too <- function(target='inline') {

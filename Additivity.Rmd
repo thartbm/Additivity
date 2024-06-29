@@ -1,9 +1,9 @@
 ---
 title: "Additivity of Implicit and Explicit Motor Adaptation"
 output:
-  word_document: default
   html_document:
     df_print: paged
+  word_document: default
   pdf_document: default
 bibliography: bibliography.bib
 csl: plos.csl
@@ -229,6 +229,7 @@ for (target in c('tiff','svg','pdf')) {   # other options: 'svg' and 'pdf'
   fig5_External_Aiming(target=target)
   fig6_External_PDP(target=target)
   fig7_Relations_too(target=target)
+  visual_abstract(target=target)
 }
 ```
 
